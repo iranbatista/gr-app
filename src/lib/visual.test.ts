@@ -23,6 +23,7 @@ describe('isActive', () => {
   it('is active when end_date is today or later', () => {
     expect(isActive({ end_date: '2026-10-27' }, today)).toBe(true)
     expect(isActive({ end_date: '2026-11-01' }, today)).toBe(true)
+    expect(isActive({ end_date: '2026-10-27T00:00:00.000000Z' }, today)).toBe(true)
   })
   it('is inactive when end_date passed', () => {
     expect(isActive({ end_date: '2026-10-26' }, today)).toBe(false)

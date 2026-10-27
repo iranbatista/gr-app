@@ -8,8 +8,8 @@
     "build": "tsc -b && vite build",
     "lint": "oxlint",
     "preview": "vite preview",
-    "test": "vitest run",
-    "test:watch": "vitest",
+    "test": "TZ=America/Sao_Paulo vitest run",
+    "test:watch": "TZ=America/Sao_Paulo vitest",
     "gen:api": "curl -sf https://gr-api.iranbatista.dev/openapi.json -o openapi.json && npx -y -p typescript@5 -p openapi-typescript@7 openapi-typescript openapi.json -o src/api/schema.d.ts; rm -f openapi.json"
   },
   "dependencies": {

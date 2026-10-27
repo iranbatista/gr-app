@@ -37,6 +37,16 @@ describe('format', () => {
     expect(formatDate(null)).toBe('—')
   })
 
+  it('formatDate treats UTC-midnight timestamps as calendar dates', () => {
+    expect(formatDate('2026-10-30T00:00:00.000000Z')).toBe('30/10/2026')
+    expect(formatDate('2026-10-30T00:00:00Z')).toBe('30/10/2026')
+  })
+
+  it('formatDate shows real timestamps in local time', () => {
+    // 01:00 UTC = 22:00 do dia anterior em São Paulo
+    expect(formatDate('2026-10-30T01:00:00Z')).toBe('29/10/2026')
+  })
+
   it('formatShortDate', () => {
     expect(formatShortDate('2026-10-20')).toBe('20/10')
   })

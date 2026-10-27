@@ -1,9 +1,13 @@
 const LOCALE = 'pt-BR'
 const EMPTY = '—'
 
-// "2026-10-01" seria lido como UTC meia-noite e viraria 30/09 no Brasil.
+// Datas de calendário chegam como "2026-10-01" ou meia-noite UTC
+// ("2026-10-01T00:00:00.000000Z"); lidas como UTC virariam 30/09 no Brasil.
+const CALENDAR_DATE = /^(\d{4}-\d{2}-\d{2})(T00:00:00(\.0+)?Z)?$/
+
 export function parseDate(iso: string): Date {
-  return /^\d{4}-\d{2}-\d{2}$/.test(iso) ? new Date(`${iso}T00:00:00`) : new Date(iso)
+  const m = CALENDAR_DATE.exec(iso)
+  return m ? new Date(`${m[1]}T00:00:00`) : new Date(iso)
 }
 
 const dateFmt = new Intl.DateTimeFormat(LOCALE, { day: '2-digit', month: '2-digit', year: 'numeric' })
