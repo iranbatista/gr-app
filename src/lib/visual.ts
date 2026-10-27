@@ -20,3 +20,8 @@ export function isActive(c: { end_date?: string | null }, today: Date = new Date
   const startOfToday = new Date(today.getFullYear(), today.getMonth(), today.getDate())
   return parseDate(c.end_date) >= startOfToday
 }
+
+// Rótulo curto para eixo de gráfico: no máximo os dois primeiros nomes.
+export function shortName(name: string): string {
+  return name.trim().split(/\s+/).slice(0, 2).join(' ')
+}

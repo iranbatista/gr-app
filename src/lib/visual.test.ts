@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { gradientFor, initials, isActive } from './visual'
+import { gradientFor, initials, isActive, shortName } from './visual'
 
 describe('initials', () => {
   it('uses first and last name', () => {
@@ -30,5 +30,14 @@ describe('isActive', () => {
   })
   it('is active without end_date', () => {
     expect(isActive({ end_date: null }, today)).toBe(true)
+  })
+})
+
+describe('shortName', () => {
+  it('keeps at most the first two names', () => {
+    expect(shortName('Ana Maria Souza')).toBe('Ana Maria')
+    expect(shortName('Lucas Barcelos')).toBe('Lucas Barcelos')
+    expect(shortName('Kayo')).toBe('Kayo')
+    expect(shortName('  Fellipe   Gonçalves Vasconcelos ')).toBe('Fellipe Gonçalves')
   })
 })

@@ -4,10 +4,11 @@ import { ApiError } from '../api/client'
 import { useMemberWorkoutsAll, useRankings, useStats } from '../api/queries'
 import type { DayCount, Workout } from '../api/types'
 import { Avatar } from '../components/Avatar'
-import { DayChart } from '../components/DayChart'
+import { DayHeatmap } from '../components/DayHeatmap'
 import { EmptyState } from '../components/EmptyState'
 import { ErrorState } from '../components/ErrorState'
 import { StatTile } from '../components/StatTile'
+import { WeeklyChart } from '../components/WeeklyChart'
 import { WorkoutList } from '../components/WorkoutList'
 import { formatCalories, formatDistance, formatPoints, localDayKey } from '../lib/format'
 import { backLinkClass, icon, pageClass } from '../lib/ui'
@@ -103,6 +104,7 @@ function MemberView({ challengeId, memberId }: { challengeId: number; memberId: 
   }
 
   const name = entry?.account.full_name ?? totals?.name ?? `Membro #${memberId}`
+  const days = all.data ? countByDay(all.data.items) : undefined
 
   return (
     <main className={`${pageClass} flex flex-col gap-10`}>
@@ -133,11 +135,20 @@ function MemberView({ challengeId, memberId }: { challengeId: number; memberId: 
       <section className="flex flex-col gap-4">
         <h2 className={sectionTitle}>Check-ins por dia</h2>
         {all.isPending ? (
-          <div aria-hidden className="surface h-72 animate-pulse" />
+          <div aria-hidden className="surface h-40 animate-pulse" />
         ) : all.isError ? (
           <ErrorState error={all.error} onRetry={() => all.refetch()} />
         ) : (
-          <DayChart data={countByDay(all.data.items)} />
+          <DayHeatmap data={days!} />
+        )}
+      </section>
+
+      <section className="flex flex-col gap-4">
+        <h2 className={sectionTitle}>Check-ins por semana</h2>
+        {all.isPending ? (
+          <div aria-hidden className="surface h-64 animate-pulse" />
+        ) : all.isError ? null : (
+          <WeeklyChart data={days!} />
         )}
       </section>
 
