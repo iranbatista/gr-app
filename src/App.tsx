@@ -1,6 +1,7 @@
 import { Link, Route, Routes } from 'react-router-dom'
 import { KeyBanner } from './components/KeyBanner'
 import { SyncFooter } from './components/SyncFooter'
+import { ChallengePage } from './routes/ChallengePage'
 import { ChallengesPage } from './routes/ChallengesPage'
 
 export default function App() {
@@ -17,6 +18,7 @@ export default function App() {
       <div className="flex-1">
         <Routes>
           <Route path="/" element={<ChallengesPage />} />
+          <Route path="/c/:id" element={<ChallengePage />} />
         </Routes>
       </div>
       <SyncFooter />
