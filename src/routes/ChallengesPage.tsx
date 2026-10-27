@@ -1,5 +1,5 @@
 import { CalendarDays, Dumbbell, Trophy, Users } from 'lucide-react'
-import { Link } from 'react-router-dom'
+import { Link, useSearchParams } from 'react-router-dom'
 import { useChallenges } from '../api/queries'
 import type { Challenge } from '../api/types'
 import { Cover } from '../components/Cover'
@@ -57,8 +57,74 @@ function ChallengeSkeleton() {
 
 const grid = 'grid gap-5 sm:grid-cols-2 lg:grid-cols-3'
 
+const STATUS = [
+  { id: 'ativos', label: 'Ativos', empty: 'Nenhum desafio ativo no momento' },
+  { id: 'encerrados', label: 'Encerrados', empty: 'Nenhum desafio encerrado ainda' },
+] as const
+
+type StatusId = (typeof STATUS)[number]['id']
+
+interface StatusFilterProps {
+  value: StatusId
+  counts: Record<StatusId, number> | null
+  onChange: (value: StatusId) => void
+}
+
+/** Pills no estilo do seletor de mês: ativo em --tint, contagem em badge. */
+function StatusFilter({ value, counts, onChange }: StatusFilterProps) {
+  return (
+    <div role="group" aria-label="Status dos desafios" className="-mx-1 flex gap-2 overflow-x-auto px-1 pb-1">
+      {STATUS.map((st) => {
+        const active = st.id === value
+        return (
+          <button
+            key={st.id}
+            type="button"
+            aria-pressed={active}
+            onClick={() => onChange(st.id)}
+            className={`flex shrink-0 items-center gap-2 rounded-full border px-4 py-2 text-sm transition-colors ${
+              active
+                ? 'border-[var(--brand-from)] bg-[var(--tint)] font-semibold text-[var(--brand-ink)]'
+                : 'border-[var(--hairline)] bg-[var(--card)] text-[var(--ink-muted)] hover:bg-[var(--wash)]'
+            }`}
+          >
+            {st.label}
+            {counts && (
+              <span
+                className={`min-w-5 rounded-full px-1.5 text-center text-xs leading-5 tabular-nums ${
+                  active ? 'bg-[var(--brand-from)]/15 text-[var(--brand-ink)]' : 'bg-[var(--wash)] text-[var(--ink-muted)]'
+                }`}
+              >
+                {counts[st.id]}
+              </span>
+            )}
+          </button>
+        )
+      })}
+    </div>
+  )
+}
+
 export function ChallengesPage() {
   const q = useChallenges()
+  const [params, setParams] = useSearchParams()
+  // Sem ?status na URL = ativos.
+  const status: StatusId = params.get('status') === 'encerrados' ? 'encerrados' : 'ativos'
+
+  function changeStatus(next: StatusId) {
+    setParams((prev) => {
+      const out = new URLSearchParams(prev)
+      if (next === 'ativos') out.delete('status')
+      else out.set('status', next)
+      return out
+    })
+  }
+
+  const all = q.data ?? []
+  const active = all.filter((c) => isActive(c))
+  const ended = all.filter((c) => !isActive(c))
+  const counts = q.data ? { ativos: active.length, encerrados: ended.length } : null
+  const shown = status === 'ativos' ? active : ended
 
   let content
   if (q.isPending) {
@@ -71,12 +137,22 @@ export function ChallengesPage() {
     )
   } else if (q.isError) {
     content = <ErrorState error={q.error} onRetry={() => q.refetch()} />
-  } else if (q.data.length === 0) {
-    content = <EmptyState eyebrow="Lista vazia" Icon={Dumbbell}>Nenhum desafio sincronizado ainda</EmptyState>
+  } else if (all.length === 0) {
+    content = (
+      <EmptyState eyebrow="Lista vazia" Icon={Dumbbell}>
+        Nenhum desafio sincronizado ainda
+      </EmptyState>
+    )
+  } else if (shown.length === 0) {
+    content = (
+      <EmptyState eyebrow={status === 'ativos' ? 'Ativos' : 'Encerrados'} Icon={Dumbbell}>
+        {STATUS.find((st) => st.id === status)!.empty}
+      </EmptyState>
+    )
   } else {
     content = (
       <div className={grid}>
-        {q.data.map((c) => (
+        {shown.map((c) => (
           <ChallengeCard key={c.id} c={c} />
         ))}
       </div>
@@ -85,7 +161,7 @@ export function ChallengesPage() {
 
   // Com erro a contagem seria "0 desafios": melhor não dizer nada.
   const total = q.data?.length ?? 0
-  const atual = q.data?.find((c) => isActive(c))
+  const atual = active[0]
   const legenda = q.isPending ? (
     'Carregando os desafios…'
   ) : q.isError ? (
@@ -116,7 +192,10 @@ export function ChallengesPage() {
           {legenda}
         </p>
       </header>
-      {content}
+      <div className="flex flex-col gap-6">
+        {q.data && q.data.length > 0 && <StatusFilter value={status} counts={counts} onChange={changeStatus} />}
+        {content}
+      </div>
     </main>
   )
 }
