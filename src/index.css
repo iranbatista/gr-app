@@ -1,5 +1,158 @@
 @import "tailwindcss";
+@import "@fontsource-variable/outfit";
 
-body {
-  @apply bg-gray-50 text-gray-900 antialiased;
+@theme inline {
+  --font-heading: var(--font-sans);
+  --font-sans: 'Outfit Variable', sans-serif;
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
+  --radius-3xl: calc(var(--radius) * 2.2);
+}
+
+/* Paleta quente: laranja para coral. Tudo no app sai destes tokens. */
+:root {
+  --brand-from: #f98510;
+  --brand-mid: #fda03d;
+  --brand-to: #ff6766;
+  /* Laranja escurecido o bastante para virar texto sobre --tint. */
+  --brand-ink: #a4530b;
+  --ink: #242424;
+  --ink-muted: #6f6a66;
+  --page: #fbfbfb;
+  --card: #ffffff;
+  --hairline: rgba(36, 36, 36, 0.08);
+  /* Superfícies de apoio: bege quente para hover, pills e skeleton. */
+  --wash: #faf7f3;
+  --tint: #fff6ec;
+  --danger: #e0483f;
+  --danger-hairline: #ffd9d4;
+  --danger-tint: #fff7f6;
+  --radius: 1rem;
+}
+
+/* Dark derivado dos mesmos tokens: só as superfícies invertem, a marca fica. */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --brand-ink: #f9a54b;
+    --ink: #f5f2ef;
+    --ink-muted: #a29a94;
+    --page: #131211;
+    --card: #1c1a18;
+    --hairline: rgba(255, 255, 255, 0.09);
+    --wash: #232120;
+    --tint: #2a1f14;
+    --danger: #ff8b82;
+    --danger-hairline: rgba(255, 139, 130, 0.28);
+    --danger-tint: rgba(255, 139, 130, 0.07);
+  }
+}
+
+@layer base {
+  html {
+    @apply font-sans antialiased;
+    color-scheme: light dark;
+  }
+  body {
+    background-color: var(--page);
+    color: var(--ink);
+    /* Wash quente atrás das superfícies brancas. */
+    background-image:
+      radial-gradient(58rem 30rem at 10% -10%, rgba(249, 133, 16, 0.07), transparent 62%),
+      radial-gradient(50rem 26rem at 94% 2%, rgba(255, 103, 102, 0.06), transparent 62%);
+    background-attachment: fixed;
+  }
+  @media (prefers-color-scheme: dark) {
+    body {
+      background-image:
+        radial-gradient(58rem 30rem at 10% -10%, rgba(249, 133, 16, 0.10), transparent 62%),
+        radial-gradient(50rem 26rem at 94% 2%, rgba(255, 103, 102, 0.08), transparent 62%);
+    }
+  }
+  ::selection {
+    background-color: rgba(249, 133, 16, 0.22);
+  }
+  :focus-visible {
+    outline: 2px solid var(--brand-from);
+    outline-offset: 2px;
+  }
+}
+
+@layer components {
+  /* O único movimento alto da marca: varredura laranja-para-coral. */
+  .brand-gradient {
+    background-image: linear-gradient(
+      100deg,
+      var(--brand-from),
+      var(--brand-mid) 45%,
+      var(--brand-to)
+    );
+  }
+  .brand-text {
+    background-image: linear-gradient(100deg, var(--brand-from), var(--brand-to));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  .eyebrow {
+    @apply text-[0.6875rem] font-medium uppercase tracking-[0.16em] text-[var(--ink-muted)];
+  }
+  .surface {
+    @apply rounded-[1.75rem] border border-[var(--hairline)] bg-[var(--card)];
+    box-shadow: 0 1px 2px rgba(36, 36, 36, 0.04), 0 12px 32px -20px rgba(36, 36, 36, 0.18);
+  }
+  /* Aro de marca em volta da foto, 2px. */
+  .brand-ring {
+    @apply rounded-full p-[2px];
+    /* @apply não alcança classes de componente no v4: gradiente repetido. */
+    background-image: linear-gradient(
+      100deg,
+      var(--brand-from),
+      var(--brand-mid) 45%,
+      var(--brand-to)
+    );
+  }
+  /* Campos de filtro: mesmo aro fino das superfícies, foco na cor da marca. */
+  .field {
+    @apply h-10 rounded-full border border-[var(--hairline)] bg-[var(--card)] px-4 text-sm text-[var(--ink)] transition-colors;
+  }
+  .field:hover {
+    background-color: var(--wash);
+  }
+  .field:focus-visible {
+    outline: none;
+    border-color: var(--brand-from);
+    box-shadow: 0 0 0 3px rgba(249, 133, 16, 0.18);
+  }
+  /* Botão principal: o gradiente cheio com sombra laranja. */
+  .btn-primary {
+    @apply inline-flex h-10 items-center justify-center rounded-full px-6 text-sm font-semibold text-white transition-[filter,transform] hover:brightness-[1.04] active:translate-y-px;
+    background-image: linear-gradient(
+      100deg,
+      var(--brand-from),
+      var(--brand-mid) 45%,
+      var(--brand-to)
+    );
+    box-shadow: 0 6px 20px -8px rgba(249, 133, 16, 0.9);
+  }
+  /* Botão secundário: pill de contorno, acende em --tint no hover. */
+  .btn-secondary {
+    @apply inline-flex h-10 items-center justify-center rounded-full border border-[var(--hairline)] bg-[var(--card)] px-6 text-sm font-medium text-[var(--ink-muted)] transition-colors hover:bg-[var(--tint)] hover:text-[var(--brand-ink)] disabled:cursor-not-allowed disabled:opacity-45;
+  }
+  /* Sweep de carregamento no lugar da foto. */
+  .sweep {
+    animation: sweep 1.5s ease-in-out infinite;
+  }
+  @keyframes sweep {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(300%); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .sweep {
+      animation: none;
+      opacity: 0.5;
+    }
+  }
 }
