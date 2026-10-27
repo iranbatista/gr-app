@@ -80,7 +80,13 @@ export function ChallengePage() {
             type="button"
             role="tab"
             aria-selected={tab === t.id}
-            onClick={() => setParams({ tab: t.id })}
+            onClick={() =>
+              setParams((prev) => {
+                const next = new URLSearchParams(prev)
+                next.set('tab', t.id)
+                return next
+              })
+            }
             className={`-mb-px border-b-2 px-4 py-2 ${
               tab === t.id ? 'border-orange-500 font-semibold' : 'border-transparent text-gray-500'
             }`}

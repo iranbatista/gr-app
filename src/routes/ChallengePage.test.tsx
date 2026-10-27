@@ -48,4 +48,14 @@ describe('ChallengePage', () => {
     await userEvent.click(await screen.findByRole('tab', { name: 'Gráficos' }))
     expect(screen.getByRole('tab', { name: 'Gráficos' })).toHaveAttribute('aria-selected', 'true')
   })
+
+  it('keeps feed filters when switching tabs', async () => {
+    renderApp('/c/1?tab=feed&member=12')
+    await screen.findByText('Bike')
+    await userEvent.click(screen.getByRole('tab', { name: 'Ranking' }))
+    await userEvent.click(screen.getByRole('tab', { name: 'Feed' }))
+    expect(await screen.findByText('Bike')).toBeInTheDocument()
+    expect(screen.getByLabelText('Membro')).toHaveValue('12')
+    expect(screen.getAllByRole('article')).toHaveLength(1)
+  })
 })
