@@ -27,7 +27,10 @@ export function WorkoutList({ challengeId, filters, showMember = true }: Props) 
   // páginas por offset podem se sobrepor quando há check-ins novos entre as requisições
   const seen = new Set<number>()
   const items = q.data.pages.flatMap((p) => p.items).filter((w) => !seen.has(w.id) && seen.add(w.id))
-  if (items.length === 0) return <EmptyState>Nenhum check-in ainda</EmptyState>
+  if (items.length === 0) {
+    const filtered = filters.member != null || !!filters.since || !!filters.until
+    return <EmptyState>{filtered ? 'Nenhum check-in para esses filtros' : 'Nenhum check-in ainda'}</EmptyState>
+  }
 
   return (
     <div className="space-y-4">

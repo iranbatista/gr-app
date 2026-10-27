@@ -66,4 +66,10 @@ describe('FeedTab', () => {
     renderApp('/c/1?tab=feed')
     expect(await screen.findByText('Nenhum check-in ainda')).toBeInTheDocument()
   })
+
+  it('shows a filter-specific empty state', async () => {
+    server.use(workoutsHandler([]))
+    renderApp('/c/1?tab=feed&since=2026-10-01')
+    expect(await screen.findByText('Nenhum check-in para esses filtros')).toBeInTheDocument()
+  })
 })
