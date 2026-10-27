@@ -24,7 +24,9 @@ export function WorkoutList({ challengeId, filters, showMember = true }: Props) 
   }
   if (q.isError) return <ErrorState error={q.error} onRetry={() => q.refetch()} />
 
-  const items = q.data.pages.flatMap((p) => p.items)
+  // páginas por offset podem se sobrepor quando há check-ins novos entre as requisições
+  const seen = new Set<number>()
+  const items = q.data.pages.flatMap((p) => p.items).filter((w) => !seen.has(w.id) && seen.add(w.id))
   if (items.length === 0) return <EmptyState>Nenhum check-in ainda</EmptyState>
 
   return (
