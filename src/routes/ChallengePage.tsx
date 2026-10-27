@@ -1,4 +1,5 @@
 import { Link, useParams, useSearchParams } from 'react-router-dom'
+import { ApiError } from '../api/client'
 import { useChallenge } from '../api/queries'
 import { Cover } from '../components/Cover'
 import { ErrorState } from '../components/ErrorState'
@@ -26,7 +27,16 @@ export function ChallengePage() {
   const id = Number(useParams().id)
   const [params, setParams] = useSearchParams()
   const tab = currentTab(params.get('tab'))
-  const q = useChallenge(id)
+  const valid = Number.isFinite(id)
+  const q = useChallenge(id, valid)
+
+  if (!valid) {
+    return (
+      <main className="mx-auto max-w-5xl p-4">
+        <ErrorState error={new ApiError(404, 'invalid id')} notFound="Desafio não encontrado" />
+      </main>
+    )
+  }
 
   if (q.isPending) {
     return (

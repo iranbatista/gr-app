@@ -24,6 +24,19 @@ describe('ChallengePage', () => {
     expect(await screen.findByText('Desafio não encontrado')).toBeInTheDocument()
   })
 
+  it('shows not found for non-numeric id without calling the API', async () => {
+    let called = false
+    server.use(
+      http.get(`${API}/challenges/:id`, () => {
+        called = true
+        return HttpResponse.json({})
+      }),
+    )
+    renderApp('/c/abc')
+    expect(await screen.findByText('Desafio não encontrado')).toBeInTheDocument()
+    expect(called).toBe(false)
+  })
+
   it('shows empty ranking', async () => {
     server.use(http.get(`${API}/challenges/:id/rankings`, () => HttpResponse.json([])))
     renderApp('/c/1')

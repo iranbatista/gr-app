@@ -14,6 +14,11 @@ describe('MemberPage', () => {
     expect(screen.getByRole('link', { name: '← Desafio' })).toHaveAttribute('href', '/c/1')
   })
 
+  it('shows not found for non-numeric member id', async () => {
+    renderApp('/c/1/m/abc')
+    expect(await screen.findByText('Membro não encontrado')).toBeInTheDocument()
+  })
+
   it('shows not found for unknown member', async () => {
     renderApp('/c/1/m/999')
     expect(await screen.findByText('Membro não encontrado')).toBeInTheDocument()

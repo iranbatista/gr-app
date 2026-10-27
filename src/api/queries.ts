@@ -40,10 +40,11 @@ export function useChallenges() {
   })
 }
 
-export function useChallenge(id: number) {
+export function useChallenge(id: number, enabled = true) {
   return useQuery({
     queryKey: ['challenge', id],
     queryFn: () => apiGet<Challenge>(`/challenges/${id}`),
+    enabled,
   })
 }
 

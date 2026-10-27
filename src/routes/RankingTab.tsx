@@ -23,21 +23,32 @@ export function RankingTab({ challengeId }: { challengeId: number }) {
 
   return (
     <ol className="divide-y overflow-hidden rounded-lg border bg-white">
-      {q.data.map((r, i) => (
-        <li key={r.account.id ?? i}>
-          <Link
-            to={`/c/${challengeId}/m/${r.account.id}`}
-            className="flex items-center gap-3 p-3 hover:bg-gray-50"
-          >
+      {q.data.map((r, i) => {
+        const row = (
+          <>
             <span className="w-8 text-right font-bold text-gray-500">
               {r.rank != null ? `${r.rank}º` : '—'}
             </span>
             <Avatar url={r.account.profile_picture_url} name={r.account.full_name} />
             <span className="flex-1 font-medium">{r.account.full_name ?? 'Sem nome'}</span>
             <span className="font-semibold">{formatPoints(r.score ?? 0)}</span>
-          </Link>
-        </li>
-      ))}
+          </>
+        )
+        return (
+          <li key={r.account.id ?? i}>
+            {r.account.id == null ? (
+              <div className="flex items-center gap-3 p-3">{row}</div>
+            ) : (
+              <Link
+                to={`/c/${challengeId}/m/${r.account.id}`}
+                className="flex items-center gap-3 p-3 hover:bg-gray-50"
+              >
+                {row}
+              </Link>
+            )}
+          </li>
+        )
+      })}
     </ol>
   )
 }

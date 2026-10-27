@@ -10,7 +10,7 @@ export function FeedTab({ challengeId }: { challengeId: number }) {
 
   const member = params.get('member')
   const filters: WorkoutFilters = {
-    member: member ? Number(member) : undefined,
+    member: member && Number.isFinite(Number(member)) ? Number(member) : undefined,
     since: params.get('since') ?? undefined,
     until: params.get('until') ?? undefined,
   }

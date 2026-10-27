@@ -1,4 +1,5 @@
 import { Link, useParams } from 'react-router-dom'
+import { ApiError } from '../api/client'
 import { useMemberWorkoutsAll, useRankings, useStats } from '../api/queries'
 import type { DayCount, Workout } from '../api/types'
 import { Avatar } from '../components/Avatar'
@@ -24,6 +25,17 @@ export function MemberPage() {
   const challengeId = Number(params.id)
   const memberId = Number(params.memberId)
 
+  if (!Number.isFinite(challengeId) || !Number.isFinite(memberId)) {
+    return (
+      <main className="mx-auto max-w-5xl p-4">
+        <ErrorState error={new ApiError(404, 'invalid id')} notFound="Membro não encontrado" />
+      </main>
+    )
+  }
+  return <MemberView challengeId={challengeId} memberId={memberId} />
+}
+
+function MemberView({ challengeId, memberId }: { challengeId: number; memberId: number }) {
   const rankings = useRankings(challengeId)
   const stats = useStats(challengeId)
   const all = useMemberWorkoutsAll(challengeId, memberId)

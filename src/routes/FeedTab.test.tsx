@@ -72,4 +72,9 @@ describe('FeedTab', () => {
     renderApp('/c/1?tab=feed&since=2026-10-01')
     expect(await screen.findByText('Nenhum check-in para esses filtros')).toBeInTheDocument()
   })
+
+  it('ignores a non-numeric member param', async () => {
+    renderApp('/c/1?tab=feed&member=abc')
+    expect(await screen.findAllByRole('article')).toHaveLength(3)
+  })
 })
