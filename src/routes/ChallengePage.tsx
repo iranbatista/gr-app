@@ -1,20 +1,21 @@
+import { Activity, ArrowLeft, CalendarDays, ChartColumn, ListOrdered, Users } from 'lucide-react'
 import { Link, useParams, useSearchParams } from 'react-router-dom'
 import { ApiError } from '../api/client'
 import { useChallenge } from '../api/queries'
 import { Cover } from '../components/Cover'
 import { ErrorState } from '../components/ErrorState'
-import { Skeleton } from '../components/Skeleton'
 import { StatusBadge } from '../components/StatusBadge'
 import { formatPeriod } from '../lib/format'
+import { backLinkClass, icon, pageClass } from '../lib/ui'
 import { isActive } from '../lib/visual'
 import { FeedTab } from './FeedTab'
 import { RankingTab } from './RankingTab'
 import { StatsTab } from './StatsTab'
 
 const TABS = [
-  { id: 'ranking', label: 'Ranking' },
-  { id: 'stats', label: 'Gráficos' },
-  { id: 'feed', label: 'Feed' },
+  { id: 'ranking', label: 'Ranking', Icon: ListOrdered },
+  { id: 'stats', label: 'Gráficos', Icon: ChartColumn },
+  { id: 'feed', label: 'Feed', Icon: Activity },
 ] as const
 
 type TabId = (typeof TABS)[number]['id']
@@ -32,7 +33,7 @@ export function ChallengePage() {
 
   if (!valid) {
     return (
-      <main className="mx-auto max-w-5xl p-4">
+      <main className={pageClass}>
         <ErrorState error={new ApiError(404, 'invalid id')} notFound="Desafio não encontrado" />
       </main>
     )
@@ -40,14 +41,22 @@ export function ChallengePage() {
 
   if (q.isPending) {
     return (
-      <main className="mx-auto max-w-5xl space-y-4 p-4">
-        <Skeleton className="h-64 w-full" />
+      <main className={`${pageClass} flex flex-col gap-8`}>
+        <div aria-hidden className="h-8 w-28 animate-pulse rounded-full bg-[var(--wash)]" />
+        <div aria-hidden className="surface flex animate-pulse flex-col gap-5 p-3">
+          <div className="h-48 w-full rounded-[1.25rem] bg-[var(--wash)] sm:h-56" />
+          <div className="flex flex-col gap-3 px-3 pb-3">
+            <div className="h-3 w-20 rounded-full bg-[var(--wash)]" />
+            <div className="h-7 w-64 max-w-full rounded-full bg-[var(--wash)]" />
+            <div className="h-3 w-48 rounded-full bg-[var(--wash)]" />
+          </div>
+        </div>
       </main>
     )
   }
   if (q.isError) {
     return (
-      <main className="mx-auto max-w-5xl p-4">
+      <main className={pageClass}>
         <ErrorState error={q.error} onRetry={() => q.refetch()} notFound="Desafio não encontrado" />
       </main>
     )
@@ -55,25 +64,40 @@ export function ChallengePage() {
 
   const c = q.data
   return (
-    <main className="mx-auto max-w-5xl space-y-4 p-4">
-      <Link to="/" className="text-sm text-gray-500 hover:underline">
-        ← Desafios
-      </Link>
-      <header className="overflow-hidden rounded-xl border bg-white">
-        <Cover url={c.profile_picture_url} name={c.name} className="h-48 w-full" />
-        <div className="space-y-1 p-4">
-          <div className="flex items-start justify-between gap-2">
-            <h1 className="text-2xl font-bold">{c.name ?? `Desafio #${c.id}`}</h1>
+    <main className={`${pageClass} flex flex-col gap-8`}>
+      <div>
+        <Link to="/" className={backLinkClass}>
+          <ArrowLeft {...icon} />
+          Desafios
+        </Link>
+      </div>
+      <header className="surface flex flex-col gap-5 p-3">
+        <Cover url={c.profile_picture_url} name={c.name} className="h-48 w-full rounded-[1.25rem] sm:h-56" />
+        <div className="flex flex-col gap-3 px-3 pb-3">
+          <div className="flex items-center justify-between gap-3">
+            <p className="eyebrow flex items-center gap-1.5">
+              <CalendarDays size={13} strokeWidth={1.75} />
+              {formatPeriod(c.start_date, c.end_date)}
+            </p>
             <StatusBadge active={isActive(c)} />
           </div>
-          <p className="text-sm text-gray-500">
-            {formatPeriod(c.start_date, c.end_date)} · {c.member_count ?? 0} membros
+          <h1 className="break-words font-heading text-[1.875rem] font-semibold leading-[1.1] tracking-tight text-[var(--ink)] sm:text-[2.25rem]">
+            {c.name ?? `Desafio #${c.id}`}
+          </h1>
+          <p className="flex items-center gap-1.5 text-sm text-[var(--ink-muted)]">
+            <Users {...icon} />
+            {c.member_count ?? 0} atletas no desafio
           </p>
-          {c.description && <p className="text-gray-700">{c.description}</p>}
+          {c.description && (
+            <p className="max-w-2xl whitespace-pre-line text-[15px] leading-relaxed text-[var(--ink)]/80">
+              {c.description}
+            </p>
+          )}
         </div>
       </header>
 
-      <nav role="tablist" className="flex gap-1 border-b">
+      {/* Rola no eixo x em telas estreitas em vez de quebrar em duas linhas. */}
+      <nav role="tablist" className="-mx-1 flex gap-2 overflow-x-auto px-1 pb-1">
         {TABS.map((t) => (
           <button
             key={t.id}
@@ -87,10 +111,13 @@ export function ChallengePage() {
                 return next
               })
             }
-            className={`-mb-px border-b-2 px-4 py-2 ${
-              tab === t.id ? 'border-orange-500 font-semibold' : 'border-transparent text-gray-500'
+            className={`inline-flex shrink-0 items-center gap-2 rounded-full border px-5 py-2 text-sm transition-colors ${
+              tab === t.id
+                ? 'border-[var(--brand-from)] bg-[var(--tint)] font-semibold text-[var(--brand-ink)]'
+                : 'border-[var(--hairline)] bg-[var(--card)] text-[var(--ink-muted)] hover:bg-[var(--wash)]'
             }`}
           >
+            <t.Icon {...icon} />
             {t.label}
           </button>
         ))}

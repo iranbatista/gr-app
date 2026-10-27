@@ -15,7 +15,8 @@ describe('FeedTab', () => {
     const first = cards[0]
     expect(within(first).getByText('Corrida')).toBeInTheDocument()
     expect(within(first).getByText('Ana Souza')).toBeInTheDocument()
-    expect(within(first).getByText('1h 20min · 5,2 km · 400 kcal · 1 pts')).toBeInTheDocument()
+    const metrics = within(first).getAllByRole('listitem').map((li) => li.textContent)
+    expect(metrics).toEqual(['1h 20min', '5,2 km', '400 kcal', '1 pts'])
   })
 
   it('filters by member from the URL', async () => {

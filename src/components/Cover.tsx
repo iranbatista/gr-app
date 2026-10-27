@@ -10,7 +10,7 @@ interface Props {
 export function Cover({ url, name, className = '' }: Props) {
   const [failed, setFailed] = useState(false)
   if (url && !failed) {
-    return <img src={url} alt="" onError={() => setFailed(true)} className={`object-cover ${className}`} />
+    return <img src={url} alt="" onError={() => setFailed(true)} className={`bg-[var(--wash)] object-cover ${className}`} />
   }
   return <div aria-hidden className={className} style={{ background: gradientFor(name ?? '') }} />
 }

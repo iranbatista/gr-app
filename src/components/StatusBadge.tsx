@@ -1,7 +1,12 @@
 export function StatusBadge({ active }: { active: boolean }) {
   return active ? (
-    <span className="rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-800">Ativo</span>
+    <span className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-[var(--brand-from)]/35 bg-[var(--tint)] px-3 py-0.5 text-xs font-semibold text-[var(--brand-ink)]">
+      <span aria-hidden className="h-1.5 w-1.5 rounded-full bg-[var(--brand-from)]" />
+      Ativo
+    </span>
   ) : (
-    <span className="rounded-full bg-gray-200 px-2 py-0.5 text-xs font-medium text-gray-600">Encerrado</span>
+    <span className="inline-flex shrink-0 items-center rounded-full border border-[var(--hairline)] bg-[var(--wash)] px-3 py-0.5 text-xs font-medium text-[var(--ink-muted)]">
+      Encerrado
+    </span>
   )
 }

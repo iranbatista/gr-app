@@ -11,7 +11,7 @@ describe('MemberPage', () => {
     expect(screen.getByLabelText('Calorias: 800 kcal')).toBeInTheDocument()
     expect(screen.getByLabelText('Distância: 5,2 km')).toBeInTheDocument()
     expect(await screen.findAllByRole('article')).toHaveLength(2)
-    expect(screen.getByRole('link', { name: '← Desafio' })).toHaveAttribute('href', '/c/1')
+    expect(screen.getByRole('link', { name: 'Desafio' })).toHaveAttribute('href', '/c/1')
   })
 
   it('shows not found for non-numeric member id', async () => {

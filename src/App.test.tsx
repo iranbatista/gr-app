@@ -5,7 +5,7 @@ import { renderApp } from './test/render'
 describe('App shell', () => {
   it('shows last sync time in footer', async () => {
     renderApp('/')
-    expect(await screen.findByText('Sincronizado há 12 min')).toBeInTheDocument()
+    expect(await screen.findByText('Atualizado há 12 min')).toBeInTheDocument()
   })
 
   it('warns when API key is missing from build', () => {

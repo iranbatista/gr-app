@@ -7,12 +7,12 @@ import { MemberPage } from './routes/MemberPage'
 
 export default function App() {
   return (
-    <div className="flex min-h-screen flex-col">
+    <div className="flex min-h-screen flex-col overflow-x-clip">
       <KeyBanner />
-      <header className="border-b bg-white">
-        <div className="mx-auto max-w-5xl px-4 py-3">
-          <Link to="/" className="text-lg font-bold text-orange-600">
-            GymRats
+      <header className="border-b border-[var(--hairline)] bg-[var(--card)]/70 backdrop-blur">
+        <div className="mx-auto flex h-14 max-w-5xl items-center px-5 sm:px-6">
+          <Link to="/" className="font-heading text-lg font-semibold tracking-tight">
+            <span className="brand-text">GymRats</span>
           </Link>
         </div>
       </header>
