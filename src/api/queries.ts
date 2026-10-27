@@ -11,15 +11,20 @@ export interface WorkoutFilters {
   until?: string
 }
 
-// occurred_on é datetime ISO na API e a comparação é por string:
-// "2026-10-20T10:00Z" > "2026-10-20", então estendemos until até o fim do dia.
+// occurred_on é guardado como "2026-10-27T21:50:54.000000Z" (UTC) e comparado por string;
+// converte o dia de calendário local em limites UTC no mesmo formato (fração de 6 dígitos).
+export function localDayBound(day: string, end: boolean): string {
+  const d = new Date(end ? `${day}T23:59:59.999` : `${day}T00:00:00`)
+  return d.toISOString().replace('Z', end ? '999Z' : '000Z')
+}
+
 export function workoutParams(f: WorkoutFilters, limit: number, offset: number) {
   return {
     limit,
     offset,
     member_id: f.member,
-    since: f.since,
-    until: f.until ? `${f.until}T23:59:59.999999` : undefined,
+    since: f.since ? localDayBound(f.since, false) : undefined,
+    until: f.until ? localDayBound(f.until, true) : undefined,
   }
 }
 

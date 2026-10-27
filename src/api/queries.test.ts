@@ -2,13 +2,13 @@ import { describe, expect, it } from 'vitest'
 import { nextOffset, workoutParams } from './queries'
 
 describe('workoutParams', () => {
-  it('maps filters to API params and widens until to end of day', () => {
+  it('maps local-day filters to UTC bounds', () => {
     expect(workoutParams({ member: 11, since: '2026-10-01', until: '2026-10-20' }, 30, 60)).toEqual({
       limit: 30,
       offset: 60,
       member_id: 11,
-      since: '2026-10-01',
-      until: '2026-10-20T23:59:59.999999',
+      since: '2026-10-01T03:00:00.000000Z',
+      until: '2026-10-21T02:59:59.999999Z',
     })
   })
 

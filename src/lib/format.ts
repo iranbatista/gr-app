@@ -10,6 +10,13 @@ export function parseDate(iso: string): Date {
   return m ? new Date(`${m[1]}T00:00:00`) : new Date(iso)
 }
 
+// Dia de calendário local ("YYYY-MM-DD") de um instante ISO.
+export function localDayKey(iso: string): string {
+  const d = new Date(iso)
+  const pad = (n: number) => String(n).padStart(2, '0')
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`
+}
+
 const dateFmt = new Intl.DateTimeFormat(LOCALE, { day: '2-digit', month: '2-digit', year: 'numeric' })
 const shortDateFmt = new Intl.DateTimeFormat(LOCALE, { day: '2-digit', month: '2-digit' })
 

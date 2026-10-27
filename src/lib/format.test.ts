@@ -8,6 +8,7 @@ import {
   formatPoints,
   formatRelative,
   formatShortDate,
+  localDayKey,
 } from './format'
 
 describe('format', () => {
@@ -64,5 +65,10 @@ describe('format', () => {
     expect(formatRelative('2026-10-26T12:00:00Z', now)).toBe('há 1 dia')
     expect(formatRelative('2026-10-24T12:00:00Z', now)).toBe('há 3 dias')
     expect(formatRelative(null, now)).toBe('nunca')
+  })
+
+  it('localDayKey uses the local calendar day', () => {
+    expect(localDayKey('2026-10-28T01:30:00Z')).toBe('2026-10-27')
+    expect(localDayKey('2026-10-28T12:00:00Z')).toBe('2026-10-28')
   })
 })

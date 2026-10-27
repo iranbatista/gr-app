@@ -8,12 +8,12 @@ import { ErrorState } from '../components/ErrorState'
 import { Skeleton } from '../components/Skeleton'
 import { StatTile } from '../components/StatTile'
 import { WorkoutList } from '../components/WorkoutList'
-import { formatCalories, formatDistance, formatPoints } from '../lib/format'
+import { formatCalories, formatDistance, formatPoints, localDayKey } from '../lib/format'
 
 function countByDay(items: Workout[]): DayCount[] {
   const counts = new Map<string, number>()
   for (const w of items) {
-    const day = w.occurred_at?.slice(0, 10)
+    const day = w.occurred_at ? localDayKey(w.occurred_at) : undefined
     if (day) counts.set(day, (counts.get(day) ?? 0) + 1)
   }
   return [...counts.entries()].sort(([a], [b]) => a.localeCompare(b)).map(([date, count]) => ({ date, count }))
