@@ -7,6 +7,7 @@ import { StatusBadge } from '../components/StatusBadge'
 import { formatPeriod } from '../lib/format'
 import { isActive } from '../lib/visual'
 import { RankingTab } from './RankingTab'
+import { StatsTab } from './StatsTab'
 
 const TABS = [
   { id: 'ranking', label: 'Ranking' },
@@ -79,6 +80,7 @@ export function ChallengePage() {
       </nav>
 
       {tab === 'ranking' && <RankingTab challengeId={id} />}
+      {tab === 'stats' && <StatsTab challengeId={id} />}
     </main>
   )
 }
