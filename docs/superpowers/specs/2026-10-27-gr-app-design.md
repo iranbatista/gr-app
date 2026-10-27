@@ -34,7 +34,7 @@ do ranking (que já traz `account.id`, nome e avatar).
 | Hospedagem | GitHub Pages, repo `gr-app`, URL `https://iranbatista.github.io/gr-app/` |
 | API key | Embutida no build via GitHub Secret `GYMRATS_KEY` → `VITE_GYMRATS_KEY` |
 | Stack | Vite + React + TypeScript + TanStack Query + React Router + Recharts + Tailwind |
-| Roteamento | `HashRouter` (Pages não tem fallback de SPA); Vite `base: '/gr-app/'` |
+| Roteamento | `BrowserRouter` com `basename` = `BASE_URL`; build copia `index.html` → `404.html` (fallback de SPA no Pages); Vite `base: '/gr-app/'` |
 | Tipos | Gerados de `https://gr-api.iranbatista.dev/openapi.json` via `openapi-typescript` (`npm run gen:api`), arquivo versionado |
 | Capa do desafio | `profile_picture_url` do desafio; fallback gradiente determinístico a partir do nome |
 
@@ -59,7 +59,7 @@ gr-app/
 │  ├─ routes/              # ChallengesPage, ChallengePage, MemberPage
 │  ├─ components/          # Avatar, Cover, Skeleton, ErrorState, EmptyState, SyncFooter, charts...
 │  ├─ lib/format.ts        # datas, duração, distância, "há X min"
-│  └─ main.tsx             # QueryClientProvider + HashRouter
+│  └─ main.tsx             # QueryClientProvider + BrowserRouter
 ├─ vite.config.ts
 └─ .env.example            # VITE_API_URL, VITE_GYMRATS_KEY
 ```
