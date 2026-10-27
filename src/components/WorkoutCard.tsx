@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import type { Workout } from '../api/types'
 import { formatCalories, formatDate, formatDistance, formatDuration, formatPoints } from '../lib/format'
 import { Avatar } from './Avatar'
@@ -13,10 +14,17 @@ function metrics(w: Workout): string[] {
 
 export function WorkoutCard({ workout: w, showMember = true }: { workout: Workout; showMember?: boolean }) {
   const m = metrics(w)
+  const [photoFailed, setPhotoFailed] = useState(false)
   return (
     <article className="overflow-hidden rounded-lg border bg-white">
-      {w.photo_url && (
-        <img src={w.photo_url} alt="" loading="lazy" className="aspect-video w-full object-cover" />
+      {w.photo_url && !photoFailed && (
+        <img
+          src={w.photo_url}
+          alt=""
+          loading="lazy"
+          onError={() => setPhotoFailed(true)}
+          className="aspect-video w-full object-cover"
+        />
       )}
       <div className="space-y-2 p-3">
         {showMember && (
