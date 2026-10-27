@@ -3,6 +3,7 @@ import { KeyBanner } from './components/KeyBanner'
 import { SyncFooter } from './components/SyncFooter'
 import { ChallengePage } from './routes/ChallengePage'
 import { ChallengesPage } from './routes/ChallengesPage'
+import { MemberPage } from './routes/MemberPage'
 
 export default function App() {
   return (
@@ -19,6 +20,7 @@ export default function App() {
         <Routes>
           <Route path="/" element={<ChallengesPage />} />
           <Route path="/c/:id" element={<ChallengePage />} />
+          <Route path="/c/:id/m/:memberId" element={<MemberPage />} />
         </Routes>
       </div>
       <SyncFooter />
