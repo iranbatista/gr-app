@@ -123,7 +123,7 @@ export function ChallengePage() {
         ))}
       </nav>
 
-      {tab === 'ranking' && <RankingTab challengeId={id} />}
+      {tab === 'ranking' && <RankingTab key={id} challengeId={id} />}
       {tab === 'stats' && <StatsTab challengeId={id} />}
       {tab === 'feed' && <FeedTab challengeId={id} />}
     </main>
