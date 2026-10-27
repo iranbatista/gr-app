@@ -1,7 +1,7 @@
 import { screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { http, HttpResponse } from 'msw'
-import { describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import { API, makeWorkout } from '../test/fixtures'
 import { workoutsHandler } from '../test/handlers'
 import { renderApp } from '../test/render'
@@ -12,8 +12,7 @@ describe('FeedTab', () => {
     renderApp('/c/1?tab=feed')
     const cards = await screen.findAllByRole('article')
     expect(cards).toHaveLength(3)
-    const first = cards[0]
-    expect(within(first).getByText('Corrida')).toBeInTheDocument()
+    const first = screen.getByText('Corrida').closest('article')!
     expect(within(first).getByText('Ana Souza')).toBeInTheDocument()
     const metrics = within(first).getAllByRole('listitem').map((li) => li.textContent)
     expect(metrics).toEqual(['1h 20min', '5,2 km', '400 kcal', '1 pts'])
@@ -77,5 +76,29 @@ describe('FeedTab', () => {
   it('ignores a non-numeric member param', async () => {
     renderApp('/c/1?tab=feed&member=abc')
     expect(await screen.findAllByRole('article')).toHaveLength(3)
+  })
+
+  afterEach(() => vi.useRealTimers())
+
+  it('groups workouts by day, newest first', async () => {
+    // só o Date é falso: MSW e react-query seguem com timers reais
+    vi.useFakeTimers({ toFake: ['Date'], now: new Date('2026-10-27T12:00:00') })
+    renderApp('/c/1?tab=feed')
+    await screen.findAllByRole('article')
+    const headings = screen.getAllByRole('heading', { level: 3, name: /^(\d{2}\/\d{2}|Hoje|Ontem|Sem data)$/ })
+    expect(headings.map((h) => h.textContent)).toEqual(['21/10', '20/10'])
+    const day20 = headings[1].closest('section')!
+    expect(within(day20).getAllByRole('article')).toHaveLength(2)
+  })
+
+  it('puts workouts without date in a final group', async () => {
+    vi.useFakeTimers({ toFake: ['Date'], now: new Date('2026-10-27T12:00:00') })
+    server.use(
+      workoutsHandler([makeWorkout({ id: 1, title: 'Sem hora', occurred_at: null }), makeWorkout({ id: 2, title: 'Corrida' })]),
+    )
+    renderApp('/c/1?tab=feed')
+    await screen.findByText('Sem hora')
+    const headings = screen.getAllByRole('heading', { level: 3, name: /^(\d{2}\/\d{2}|Hoje|Ontem|Sem data)$/ })
+    expect(headings.map((h) => h.textContent)).toEqual(['20/10', 'Sem data'])
   })
 })

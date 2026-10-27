@@ -56,8 +56,9 @@ export function makeWorkout(over: Partial<Workout> = {}): Workout {
 }
 
 export const workouts: Workout[] = [
-  makeWorkout({ id: 101, title: 'Corrida' }),
+  // mais recente primeiro, como a API devolve
   makeWorkout({ id: 102, title: 'Musculação', occurred_at: '2026-10-21T18:00:00Z', distance: null }),
+  makeWorkout({ id: 101, title: 'Corrida' }),
   makeWorkout({ id: 103, title: 'Bike', account: bruno }),
 ]
 

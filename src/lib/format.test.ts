@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import {
+  dayLabel,
   formatCalories,
   formatDate,
   formatDistance,
@@ -70,5 +71,16 @@ describe('format', () => {
   it('localDayKey uses the local calendar day', () => {
     expect(localDayKey('2026-10-28T01:30:00Z')).toBe('2026-10-27')
     expect(localDayKey('2026-10-28T12:00:00Z')).toBe('2026-10-28')
+  })
+
+  it('dayLabel', () => {
+    const now = new Date('2026-10-27T15:00:00')
+    expect(dayLabel('2026-10-27', now)).toBe('Hoje')
+    expect(dayLabel('2026-10-26', now)).toBe('Ontem')
+    expect(dayLabel('2026-10-25', now)).toBe('25/10')
+    expect(dayLabel('2025-10-25', now)).toBe('25/10/2025')
+    // virada de mês e de ano
+    expect(dayLabel('2026-09-30', new Date('2026-10-01T08:00:00'))).toBe('Ontem')
+    expect(dayLabel('2025-12-31', new Date('2026-01-01T00:30:00'))).toBe('Ontem')
   })
 })

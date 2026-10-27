@@ -65,3 +65,13 @@ export function formatRelative(iso?: string | null, now: Date = new Date()): str
   const days = Math.floor(hours / 24)
   return days === 1 ? 'há 1 dia' : `há ${days} dias`
 }
+
+// Rótulo do separador de dia no feed: "Hoje", "Ontem", "25/10" ou "25/10/2025".
+export function dayLabel(dayKey: string, now: Date = new Date()): string {
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate())
+  const yesterday = new Date(today.getFullYear(), today.getMonth(), today.getDate() - 1)
+  if (dayKey === localDayKey(today.toISOString())) return 'Hoje'
+  if (dayKey === localDayKey(yesterday.toISOString())) return 'Ontem'
+  const [y, m, d] = dayKey.split('-')
+  return Number(y) === now.getFullYear() ? `${d}/${m}` : `${d}/${m}/${y}`
+}
