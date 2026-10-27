@@ -6,6 +6,7 @@ import { Skeleton } from '../components/Skeleton'
 import { StatusBadge } from '../components/StatusBadge'
 import { formatPeriod } from '../lib/format'
 import { isActive } from '../lib/visual'
+import { FeedTab } from './FeedTab'
 import { RankingTab } from './RankingTab'
 import { StatsTab } from './StatsTab'
 
@@ -81,6 +82,7 @@ export function ChallengePage() {
 
       {tab === 'ranking' && <RankingTab challengeId={id} />}
       {tab === 'stats' && <StatsTab challengeId={id} />}
+      {tab === 'feed' && <FeedTab challengeId={id} />}
     </main>
   )
 }
