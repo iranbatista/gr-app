@@ -64,8 +64,9 @@ function Comments({ w }: { w: Workout }) {
   const q = useWorkoutComments(w.id)
   const count = q.data?.length ?? w.comment_count ?? 0
   return (
-    <section className="flex flex-col gap-4 border-t border-[var(--hairline)] pt-5">
-      <h3 className="flex items-center gap-2 font-heading text-base font-medium tracking-tight text-[var(--ink)]">
+    // No desktop a seção ocupa o resto da coluna e só a lista rola (ver Detail).
+    <section className="flex flex-col gap-4 border-t border-[var(--hairline)] pt-5 md:min-h-48 md:flex-1">
+      <h3 className="flex shrink-0 items-center gap-2 font-heading text-base font-medium tracking-tight text-[var(--ink)]">
         <MessageCircle size={16} strokeWidth={1.75} className="text-[var(--ink-muted)]" />
         {`Comentários (${count})`}
       </h3>
@@ -82,7 +83,7 @@ function Comments({ w }: { w: Workout }) {
       ) : q.data.length === 0 ? (
         <p className="text-sm text-[var(--ink-muted)]">Nenhum comentário ainda</p>
       ) : (
-        <ul className="flex flex-col gap-4">
+        <ul className="flex flex-col gap-4 md:min-h-0 md:flex-1 md:overflow-y-auto md:overflow-x-hidden md:pr-2">
           {q.data.map((c) => (
             <li key={c.id} className="flex gap-3">
               <Avatar url={c.account.profile_picture_url} name={c.account.full_name} size="sm" />
@@ -109,27 +110,34 @@ function Detail({ w, challengeId }: { w: Workout; challengeId: number }) {
   return (
     <div className={`grid gap-6 ${media.length > 0 ? 'md:grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)]' : ''}`}>
       {media.length > 0 && <MediaGallery media={media} />}
-      <div className="flex min-w-0 flex-col gap-5">
-        {w.account.id != null ? (
-          <Link
-            to={`/c/${challengeId}/m/${w.account.id}`}
-            className="flex items-center gap-3 self-start rounded-full py-1 pl-1 pr-3 transition-colors hover:bg-[var(--wash)]"
-          >
-            <Avatar url={w.account.profile_picture_url} name={w.account.full_name} size="md" />
-            <span className="font-medium text-[var(--ink)]">{w.account.full_name ?? 'Sem nome'}</span>
-          </Link>
-        ) : (
-          <div className="flex items-center gap-3">
-            <Avatar url={w.account.profile_picture_url} name={w.account.full_name} size="md" />
-            <span className="font-medium text-[var(--ink)]">{w.account.full_name ?? 'Sem nome'}</span>
-          </div>
-        )}
-        {w.description && (
-          <p className="whitespace-pre-line break-words text-[15px] leading-relaxed text-[var(--ink)]">{w.description}</p>
-        )}
-        <Metrics w={w} />
-        <ReactionPills reactions={w.reactions} />
-        <Comments w={w} />
+      {/* Com galeria, a coluna fica absoluta no desktop: a altura da linha vem só
+          da foto, e comentários longos rolam dentro da coluna em vez de esticar
+          o modal inteiro. */}
+      <div className={`min-w-0 ${media.length > 0 ? 'md:relative' : ''}`}>
+        <div
+          className={`flex min-w-0 flex-col gap-5 ${media.length > 0 ? 'md:absolute md:inset-0 md:overflow-y-auto md:overflow-x-hidden' : ''}`}
+        >
+          {w.account.id != null ? (
+            <Link
+              to={`/c/${challengeId}/m/${w.account.id}`}
+              className="flex items-center gap-3 self-start rounded-full py-1 pl-1 pr-3 transition-colors hover:bg-[var(--wash)]"
+            >
+              <Avatar url={w.account.profile_picture_url} name={w.account.full_name} size="md" />
+              <span className="font-medium text-[var(--ink)]">{w.account.full_name ?? 'Sem nome'}</span>
+            </Link>
+          ) : (
+            <div className="flex items-center gap-3">
+              <Avatar url={w.account.profile_picture_url} name={w.account.full_name} size="md" />
+              <span className="font-medium text-[var(--ink)]">{w.account.full_name ?? 'Sem nome'}</span>
+            </div>
+          )}
+          {w.description && (
+            <p className="whitespace-pre-line break-words text-[15px] leading-relaxed text-[var(--ink)]">{w.description}</p>
+          )}
+          <Metrics w={w} />
+          <ReactionPills reactions={w.reactions} />
+          <Comments w={w} />
+        </div>
       </div>
     </div>
   )

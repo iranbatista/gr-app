@@ -41,6 +41,9 @@
   --heat-2: color-mix(in oklch, var(--brand-from) 45%, var(--card));
   --heat-3: color-mix(in oklch, var(--brand-from) 70%, var(--card));
   --heat-4: var(--brand-from);
+  /* Scrollbar: thumb discreto na tinta, esquenta para a marca no hover. */
+  --scrollbar: rgba(36, 36, 36, 0.18);
+  --scrollbar-hover: color-mix(in oklch, var(--brand-from) 70%, var(--card));
 }
 
 /* Dark derivado dos mesmos tokens: só as superfícies invertem, a marca fica. */
@@ -65,6 +68,7 @@
     --heat-2: color-mix(in oklch, var(--brand-from) 52%, var(--card));
     --heat-3: color-mix(in oklch, var(--brand-from) 76%, var(--card));
     --heat-4: var(--brand-from);
+    --scrollbar: rgba(255, 255, 255, 0.16);
   }
 }
 
@@ -91,6 +95,31 @@
   }
   ::selection {
     background-color: rgba(249, 133, 16, 0.22);
+  }
+  /* Scrollbar fina em todo o app. Firefox usa scrollbar-*; Chromium/Safari, o
+     pseudo-elemento (com borda transparente o thumb parece flutuar). */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: var(--scrollbar) transparent;
+  }
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background-color: var(--scrollbar);
+    background-clip: padding-box;
+    border: 3px solid transparent;
+    border-radius: 999px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background-color: var(--scrollbar-hover);
+  }
+  ::-webkit-scrollbar-corner {
+    background: transparent;
   }
   :focus-visible {
     outline: 2px solid var(--brand-from);

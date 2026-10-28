@@ -39,7 +39,7 @@ export function MediaGallery({ media }: { media: WorkoutMedium[] }) {
             playsInline
             preload="metadata"
             onError={() => fail(m.id)}
-            className="max-h-[70vh] w-full object-contain"
+            className="max-h-[70vh] w-full object-contain md:max-h-[calc(88vh-15rem)]"
             style={{ aspectRatio: ratio }}
           />
         ) : (
@@ -49,7 +49,7 @@ export function MediaGallery({ media }: { media: WorkoutMedium[] }) {
             alt=""
             loading="lazy"
             onError={() => fail(m.id)}
-            className="max-h-[70vh] w-full object-contain"
+            className="max-h-[70vh] w-full object-contain md:max-h-[calc(88vh-15rem)]"
             style={{ aspectRatio: ratio }}
           />
         )}
