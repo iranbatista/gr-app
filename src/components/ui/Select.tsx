@@ -7,6 +7,8 @@ export interface SelectOption {
   label: string
   /** Ícone ou avatar à esquerda do rótulo. */
   icon?: ReactNode
+  /** Linha secundária na lista (ex.: período), fora do valor exibido no gatilho. */
+  hint?: string
 }
 
 interface Props {
@@ -15,13 +17,16 @@ interface Props {
   onValueChange: (value: string) => void
   options: SelectOption[]
   placeholder?: string
+  /** Repete o ícone da opção escolhida no gatilho (capa do desafio). */
+  iconInTrigger?: boolean
 }
 
 // Radix não aceita item com value "": "Todos" e afins viajam com este marcador.
 const EMPTY = '__vazio__'
 
-export function Select({ label, value, onValueChange, options, placeholder }: Props) {
+export function Select({ label, value, onValueChange, options, placeholder, iconInTrigger = false }: Props) {
   const id = useId()
+  const picked = iconInTrigger ? options.find((o) => o.value === value) : undefined
   return (
     <div className="flex min-w-0 flex-col gap-2">
       <label htmlFor={id} className="eyebrow px-1">
@@ -32,9 +37,18 @@ export function Select({ label, value, onValueChange, options, placeholder }: Pr
           id={id}
           className="field flex w-full cursor-pointer items-center justify-between gap-2 text-left data-[placeholder]:text-[var(--ink-muted)] data-[state=open]:border-[var(--brand-from)]"
         >
-          <span className="min-w-0 truncate">
-            <S.Value placeholder={placeholder} />
-          </span>
+          {picked ? (
+            <span className="flex min-w-0 items-center gap-2.5">
+              {picked.icon}
+              <span className="min-w-0 truncate">
+                <S.Value placeholder={placeholder}>{picked.label}</S.Value>
+              </span>
+            </span>
+          ) : (
+            <span className="min-w-0 truncate">
+              <S.Value placeholder={placeholder} />
+            </span>
+          )}
           <S.Icon className="shrink-0 text-[var(--ink-muted)]">
             <ChevronDown size={15} strokeWidth={1.75} />
           </S.Icon>
@@ -53,7 +67,14 @@ export function Select({ label, value, onValueChange, options, placeholder }: Pr
                   className="relative flex cursor-pointer select-none items-center gap-2.5 rounded-xl py-2 pl-2.5 pr-8 text-sm text-[var(--ink)] outline-none data-[highlighted]:bg-[var(--wash)] data-[state=checked]:font-semibold data-[state=checked]:text-[var(--brand-ink)]"
                 >
                   {o.icon}
-                  <S.ItemText>{o.label}</S.ItemText>
+                  {o.hint ? (
+                    <span className="flex min-w-0 flex-col">
+                      <S.ItemText>{o.label}</S.ItemText>
+                      <span className="text-xs font-normal text-[var(--ink-muted)]">{o.hint}</span>
+                    </span>
+                  ) : (
+                    <S.ItemText>{o.label}</S.ItemText>
+                  )}
                   <S.ItemIndicator className="absolute right-2.5 text-[var(--brand-from)]">
                     <Check size={15} strokeWidth={2} />
                   </S.ItemIndicator>

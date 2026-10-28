@@ -26,7 +26,7 @@ import { CHECKIN_PARAM } from './WorkoutDetail'
 
 const MAX_FACES = 3
 
-interface AwardItem {
+export interface AwardItem {
   id: string
   title: string
   Icon: LucideIcon
@@ -43,8 +43,8 @@ export function formatMinutes(min: number) {
   return min < 60 ? `${min} min` : `${Math.round(min / 60).toLocaleString('pt-BR')} h`
 }
 
-/** Prêmios na ordem do layout; os sem vencedor somem. */
-function awardItems(ins: Insights): AwardItem[] {
+/** Todos os prêmios na ordem do layout; null onde não há vencedor (a comparação alinha por posição). */
+export function awardSlots(ins: Insights): (AwardItem | null)[] {
   const longest = streakLeaders(ins.streaks, 'longest')
   const a = ins.awards
   const single = (x: { account: Account; value: number } | null | undefined) =>
@@ -75,10 +75,15 @@ function awardItems(ins: Insights): AwardItem[] {
       win: duo ? { value: duo.value, accounts: duo.accounts, duo } : null,
     },
   ]
-  return all.flatMap(({ win, ...x }) => (win ? [{ ...x, ...win }] : []))
+  return all.map(({ win, ...x }) => (win ? { ...x, ...win } : null))
 }
 
-function memberLink(challengeId: number, a: Account) {
+/** Prêmios na ordem do layout; os sem vencedor somem. */
+function awardItems(ins: Insights): AwardItem[] {
+  return awardSlots(ins).filter((x): x is AwardItem => x !== null)
+}
+
+export function memberLink(challengeId: number, a: Account) {
   return a.id != null ? `/c/${challengeId}/m/${a.id}` : null
 }
 
