@@ -11,7 +11,7 @@ export interface HeatCell {
 }
 
 const DAY = 86_400_000
-const MONTHS = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez']
+const MONTHS = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez']
 
 // Chaves "YYYY-MM-DD" viram meia-noite UTC: soma de dias sem tropeçar em fuso.
 function toTime(key: string): number {
@@ -68,16 +68,46 @@ export function buildHeatmap(days: DayCount[]): HeatCell[][] {
   return weeks
 }
 
-/** Rótulo de mês na primeira semana e onde a segunda-feira troca de mês. */
+/**
+ * Rótulo de mês sobre a coluna da semana que contém o dia 1 (ou a primeira
+ * coluna, se o dia 1 ficou antes do intervalo). Quando dois rótulos ficam a
+ * menos de 2 colunas, o anterior sai para não encavalar.
+ */
 export function monthLabels(weeks: HeatCell[][]): { week: number; label: string }[] {
-  const out: { week: number; label: string }[] = []
-  let prev = -1
-  weeks.forEach((w, i) => {
-    const month = Number(w[0].date.slice(5, 7)) - 1
-    if (month !== prev) out.push({ week: i, label: MONTHS[month] })
-    prev = month
+  const placed: { week: number; label: string }[] = []
+  const seen = new Set<string>()
+  weeks.forEach((week, w) => {
+    for (const c of week) {
+      if (!c.inRange) continue
+      const ym = c.date.slice(0, 7)
+      if (seen.has(ym)) continue
+      seen.add(ym)
+      const month = Number(c.date.slice(5, 7)) - 1
+      // O primeiro dia visível de cada mês é o dia 1, exceto no primeiro mês (coluna 0).
+      placed.push({ week: w, label: MONTHS[month] })
+    }
   })
-  return out
+  return placed.filter((l, i) => {
+    const next = placed[i + 1]
+    return !next || next.week - l.week >= 2
+  })
+}
+
+/** Resumo do card: total, dias com check-in e o dia de pico (o primeiro, em empate). */
+export function heatmapSummary(days: DayCount[]): {
+  total: number
+  activeDays: number
+  peak: { date: string; count: number } | null
+} {
+  let total = 0
+  let activeDays = 0
+  let peak: { date: string; count: number } | null = null
+  for (const d of [...days].sort((a, b) => a.date.localeCompare(b.date))) {
+    total += d.count
+    if (d.count > 0) activeDays++
+    if (d.count > 0 && (!peak || d.count > peak.count)) peak = { date: d.date, count: d.count }
+  }
+  return { total, activeDays, peak }
 }
 
 /** Total por semana (segunda-feira), sem buracos entre a primeira e a última. */

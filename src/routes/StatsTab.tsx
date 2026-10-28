@@ -7,8 +7,6 @@ import { MemberChart } from '../components/MemberChart'
 import { StatTile } from '../components/StatTile'
 import { WeeklyChart } from '../components/WeeklyChart'
 
-const sectionTitle = 'font-heading text-lg font-medium tracking-tight text-[var(--ink)]'
-
 export function StatsTab({ challengeId }: { challengeId: number }) {
   const q = useStats(challengeId)
 
@@ -35,19 +33,10 @@ export function StatsTab({ challengeId }: { challengeId: number }) {
       </div>
       {/* Dia e semana lado a lado no desktop, empilhados no celular. */}
       <div className="grid gap-5 lg:grid-cols-2">
-        <section className="flex flex-col gap-4">
-          <h2 className={sectionTitle}>Check-ins por dia</h2>
-          <DayHeatmap data={s.by_day} />
-        </section>
-        <section className="flex flex-col gap-4">
-          <h2 className={sectionTitle}>Check-ins por semana</h2>
-          <WeeklyChart data={s.by_day} />
-        </section>
+        <DayHeatmap data={s.by_day} />
+        <WeeklyChart data={s.by_day} />
       </div>
-      <section className="flex flex-col gap-4">
-        <h2 className={sectionTitle}>Check-ins por membro</h2>
-        <MemberChart data={s.by_member} />
-      </section>
+      <MemberChart data={s.by_member} />
     </div>
   )
 }

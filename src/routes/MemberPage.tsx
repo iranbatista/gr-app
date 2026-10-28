@@ -136,26 +136,23 @@ function MemberView({ challengeId, memberId }: { challengeId: number; memberId: 
       </div>
 
       {/* Dia e semana lado a lado no desktop, empilhados no celular. */}
-      <div className="grid gap-5 lg:grid-cols-2">
-        <section className="flex flex-col gap-4">
-          <h2 className={sectionTitle}>Check-ins por dia</h2>
+      {all.isError ? (
+        <ErrorState error={all.error} onRetry={() => all.refetch()} />
+      ) : (
+        <div className="grid gap-5 lg:grid-cols-2">
           {all.isPending ? (
-            <div aria-hidden className="surface h-64 animate-pulse" />
-          ) : all.isError ? (
-            <ErrorState error={all.error} onRetry={() => all.refetch()} />
+            <>
+              <div aria-hidden className="surface h-72 animate-pulse" />
+              <div aria-hidden className="surface h-72 animate-pulse" />
+            </>
           ) : (
-            <DayHeatmap data={days!} />
+            <>
+              <DayHeatmap data={days!} />
+              <WeeklyChart data={days!} />
+            </>
           )}
-        </section>
-        <section className="flex flex-col gap-4">
-          <h2 className={sectionTitle}>Check-ins por semana</h2>
-          {all.isPending ? (
-            <div aria-hidden className="surface h-64 animate-pulse" />
-          ) : all.isError ? null : (
-            <WeeklyChart data={days!} />
-          )}
-        </section>
-      </div>
+        </div>
+      )}
 
       <section className="flex flex-col gap-4">
         <h2 className={sectionTitle}>Histórico</h2>

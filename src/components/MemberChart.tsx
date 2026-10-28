@@ -5,6 +5,7 @@ import type { MemberStats } from '../api/types'
 import { paginate } from '../lib/paginate'
 import { type MemberMetric, metricValue, rankMembers, shortName } from '../lib/visual'
 import { SegmentedControl } from './ui/SegmentedControl'
+import { ChartCard } from './ChartCard'
 import { ChartTooltip } from './ChartTooltip'
 import { cursorFill, tick } from './chartStyle'
 import { Pager } from './Pager'
@@ -42,8 +43,8 @@ export function MemberChart({ data }: { data: MemberStats[] }) {
   const height = Math.min(rows.length, PAGE_SIZE) * 34 + 40
   const gradient = `member-${useId().replace(/:/g, '')}`
   return (
-    <div className="surface flex flex-col gap-3 px-3 pb-4 pt-4">
-      <div className="px-2">
+    <ChartCard title={metric === 'dias' ? 'Dias ativos por membro' : 'Check-ins por membro'}>
+      <div>
         <SegmentedControl
           label="Métrica"
           value={metric}
@@ -59,7 +60,7 @@ export function MemberChart({ data }: { data: MemberStats[] }) {
           ]}
         />
       </div>
-      <div style={{ height }}>
+      <div className="-mx-2" style={{ height }}>
         <ResponsiveContainer width="100%" height="100%">
           <BarChart data={current.items} layout="vertical" margin={{ top: 0, right: 12, left: 0, bottom: 0 }}>
             <defs>
@@ -86,9 +87,7 @@ export function MemberChart({ data }: { data: MemberStats[] }) {
           </BarChart>
         </ResponsiveContainer>
       </div>
-      <div className="px-2">
-        <Pager page={current} onChange={setPage} />
-      </div>
-    </div>
+      <Pager page={current} onChange={setPage} />
+    </ChartCard>
   )
 }

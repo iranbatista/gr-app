@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { buildHeatmap, monthLabels, weeklyTotals } from './heatmap'
+import { buildHeatmap, heatmapSummary, monthLabels, weeklyTotals } from './heatmap'
 
 describe('buildHeatmap', () => {
   it('returns no weeks for empty data', () => {
@@ -51,15 +51,51 @@ describe('buildHeatmap', () => {
 })
 
 describe('monthLabels', () => {
-  it('labels the first week and each week where a month starts', () => {
+  it('places each month over the week containing its day 1', () => {
+    // semanas: 0 = 19/10, 1 = 26/10 (contém 01/11), 2 = 02/11, 3 = 09/11
     const weeks = buildHeatmap([
       { date: '2026-10-21', count: 1 },
       { date: '2026-11-10', count: 1 },
     ])
-    expect(monthLabels(weeks)).toEqual([
-      { week: 0, label: 'out' },
-      { week: 2, label: 'nov' }, // 2026-11-01 é domingo da semana 1; a semana 2 começa em 02/11
+    // 'Out' (coluna 0) fica a 1 coluna de 'Nov': o anterior some
+    expect(monthLabels(weeks)).toEqual([{ week: 1, label: 'Nov' }])
+  })
+
+  it('keeps the first month when the next one is far enough', () => {
+    // 01/10/2026 é quinta: semana 0 começa 28/09 (contém 01/10); 01/11 cai na semana 4
+    const weeks = buildHeatmap([
+      { date: '2026-09-30', count: 1 },
+      { date: '2026-11-03', count: 1 },
     ])
+    expect(monthLabels(weeks)).toEqual([
+      { week: 0, label: 'Out' },
+      { week: 4, label: 'Nov' },
+    ])
+  })
+
+  it('labels the first column with the first month when day 1 is not visible', () => {
+    const weeks = buildHeatmap([
+      { date: '2026-10-14', count: 1 },
+      { date: '2026-10-30', count: 1 },
+    ])
+    expect(monthLabels(weeks)).toEqual([{ week: 0, label: 'Out' }])
+  })
+})
+
+describe('heatmapSummary', () => {
+  it('totals, active days and the peak day', () => {
+    expect(
+      heatmapSummary([
+        { date: '2026-10-12', count: 3 },
+        { date: '2026-10-13', count: 31 },
+        { date: '2026-10-14', count: 0 },
+        { date: '2026-10-15', count: 31 },
+      ]),
+    ).toEqual({ total: 65, activeDays: 3, peak: { date: '2026-10-13', count: 31 } })
+  })
+
+  it('has no peak without data', () => {
+    expect(heatmapSummary([])).toEqual({ total: 0, activeDays: 0, peak: null })
   })
 })
 

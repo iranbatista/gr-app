@@ -3,18 +3,24 @@ import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxi
 import type { DayCount } from '../api/types'
 import { formatShortDate } from '../lib/format'
 import { weeklyTotals } from '../lib/heatmap'
+import { ChartCard } from './ChartCard'
 import { ChartTooltip } from './ChartTooltip'
 import { cursorFill, tick } from './chartStyle'
 
 const checkins = (n: number) => (n === 0 ? 'Nenhum check-in' : `${n} ${n === 1 ? 'check-in' : 'check-ins'}`)
 
-export function WeeklyChart({ data }: { data: DayCount[] }) {
+export function WeeklyChart({ data, title = 'Check-ins por semana' }: { data: DayCount[]; title?: string }) {
   const rows = weeklyTotals(data).map((w) => ({ ...w, label: formatShortDate(w.weekStart) }))
   const gradient = `week-${useId().replace(/:/g, '')}`
   return (
-    // Altura vem da linha do grid (lado a lado com o heatmap): o gráfico ocupa por absoluto.
-    <div className="surface relative min-h-64 flex-1">
-      <div className="absolute inset-0 px-3 pb-3 pt-6">
+    <ChartCard
+      title={title}
+      className="flex-1"
+      aside={rows.length > 0 && `média ${Math.round(rows.reduce((t, r) => t + r.count, 0) / rows.length)} por semana`}
+    >
+      {/* Altura vem da linha do grid (lado a lado com o heatmap): o gráfico ocupa por absoluto. */}
+      <div className="relative -mx-2 min-h-56 flex-1">
+        <div className="absolute inset-0">
         <ResponsiveContainer width="100%" height="100%">
           <BarChart data={rows} margin={{ top: 0, right: 8, left: 0, bottom: 0 }}>
             <defs>
@@ -34,7 +40,8 @@ export function WeeklyChart({ data }: { data: DayCount[] }) {
             <Bar dataKey="count" name="Check-ins" fill={`url(#${gradient})`} radius={[6, 6, 6, 6]} maxBarSize={48} />
           </BarChart>
         </ResponsiveContainer>
+        </div>
       </div>
-    </div>
+    </ChartCard>
   )
 }
