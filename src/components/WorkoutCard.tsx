@@ -1,11 +1,12 @@
 import { Flame, type LucideIcon, Route, Star, Timer } from 'lucide-react'
 import { Images, MessageCircle } from 'lucide-react'
-import { useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import type { Workout } from '../api/types'
 import { formatCalories, formatDate, formatDistance, formatDuration, formatPoints } from '../lib/format'
 import { mediaOf } from '../lib/media'
 import { groupReactions } from '../lib/reactions'
+import { thumbUrl } from '../lib/thumb'
+import { useImgFallback } from '../lib/useImgFallback'
 import { Avatar } from './Avatar'
 import { Badge } from './ui/Badge'
 
@@ -20,7 +21,7 @@ function metrics(w: Workout): [LucideIcon, string][] {
 
 export function WorkoutCard({ workout: w, showMember = true }: { workout: Workout; showMember?: boolean }) {
   const m = metrics(w)
-  const [photoFailed, setPhotoFailed] = useState(false)
+  const photo = useImgFallback([thumbUrl(w.photo_url, 256), w.photo_url])
   const [params] = useSearchParams()
   const title = w.title || w.activity_type || 'Check-in'
   const extraMedia = mediaOf(w).length - 1
@@ -41,13 +42,14 @@ export function WorkoutCard({ workout: w, showMember = true }: { workout: Workou
         aria-label={title}
         className="flex h-full flex-col gap-3 rounded-[1.375rem] p-2.5"
       >
-        {w.photo_url && !photoFailed && (
+        {photo.src && (
           <div className="relative">
             <img
-              src={w.photo_url}
+              src={photo.src}
               alt=""
               loading="lazy"
-              onError={() => setPhotoFailed(true)}
+              decoding="async"
+              onError={photo.onError}
               className="aspect-[4/3] w-full rounded-[1rem] bg-[var(--wash)] object-cover"
             />
             {extraMedia > 0 && (

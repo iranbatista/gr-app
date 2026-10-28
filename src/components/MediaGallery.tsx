@@ -2,6 +2,8 @@ import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import type { WorkoutMedium } from '../api/types'
 import { isVideo } from '../lib/media'
+import { thumbUrl } from '../lib/thumb'
+import { useImgFallback } from '../lib/useImgFallback'
 import { Button } from './ui/Button'
 
 /** Visor principal + miniaturas. Setas do teclado navegam enquanto está na tela. */
@@ -90,16 +92,28 @@ export function MediaGallery({ media }: { media: WorkoutMedium[] }) {
                 i === current ? 'border-[var(--brand-from)]' : 'border-transparent opacity-60 hover:opacity-100'
               }`}
             >
-              <img
-                src={(isVideo(t) ? t.thumbnail_url : t.url) ?? undefined}
-                alt=""
-                loading="lazy"
-                className="h-full w-full bg-[var(--wash)] object-cover"
-              />
+              <StripThumb src={isVideo(t) ? t.thumbnail_url : t.url} />
             </button>
           ))}
         </div>
       )}
     </div>
+  )
+}
+
+// Miniatura da tira (56px css -> 128): API primeiro, original se falhar.
+function StripThumb({ src }: { src?: string | null }) {
+  const img = useImgFallback([thumbUrl(src, 56), src])
+  return (
+    <img
+      src={img.src}
+      alt=""
+      width={56}
+      height={56}
+      loading="lazy"
+      decoding="async"
+      onError={img.onError}
+      className="h-full w-full bg-[var(--wash)] object-cover"
+    />
   )
 }

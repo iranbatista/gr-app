@@ -1,5 +1,6 @@
-import { useState } from 'react'
 import { initials } from '../lib/visual'
+import { thumbUrl } from '../lib/thumb'
+import { useImgFallback } from '../lib/useImgFallback'
 
 const SIZES = {
   xs: 'h-6 w-6 text-[0.625rem]',
@@ -7,6 +8,8 @@ const SIZES = {
   md: 'h-10 w-10 text-sm',
   lg: 'h-24 w-24 text-[1.75rem]',
 }
+
+const PX = { xs: 24, sm: 28, md: 40, lg: 96 }
 
 interface Props {
   url?: string | null
@@ -17,11 +20,20 @@ interface Props {
 }
 
 export function Avatar({ url, name, size = 'md', ring = false }: Props) {
-  const [failed, setFailed] = useState(false)
+  const px = PX[size]
+  const { src, onError } = useImgFallback([thumbUrl(url, px), url])
   const base = `${SIZES[size]} shrink-0 rounded-full`
   const inner =
-    url && !failed ? (
-      <img src={url} alt="" onError={() => setFailed(true)} className={`${base} bg-[var(--wash)] object-cover`} />
+    src ? (
+      <img
+        src={src}
+        alt=""
+        width={px}
+        height={px}
+        decoding="async"
+        onError={onError}
+        className={`${base} bg-[var(--wash)] object-cover`}
+      />
     ) : (
       // Sem foto: iniciais em tinta de marca sobre o bege.
       <div

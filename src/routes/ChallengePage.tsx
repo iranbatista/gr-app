@@ -66,7 +66,7 @@ export function ChallengePage() {
         </Link>
       </div>
       <header className="surface flex flex-col gap-5 p-3">
-        <Cover url={c.profile_picture_url} name={c.name} className="h-48 w-full rounded-[1.25rem] sm:h-56" />
+        <Cover cssPx={1000} url={c.profile_picture_url} name={c.name} className="h-48 w-full rounded-[1.25rem] sm:h-56" />
         <div className="flex flex-col gap-3 px-3 pb-3">
           <div className="flex items-center justify-between gap-3">
             <p className="eyebrow flex items-center gap-1.5">

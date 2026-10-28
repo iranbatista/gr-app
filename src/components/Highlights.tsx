@@ -12,10 +12,11 @@ import {
   Sunrise,
   Timer,
 } from 'lucide-react'
-import { useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import type { Account, DuoAward, EmojiCount, Insights, Streak, TopWorkout } from '../api/types'
 import { emojiSize, joinNames, streakLeaders } from '../lib/dashboard'
+import { thumbUrl } from '../lib/thumb'
+import { useImgFallback } from '../lib/useImgFallback'
 import { shortName } from '../lib/visual'
 import { Avatar } from './Avatar'
 import { ChartCard } from './ChartCard'
@@ -335,7 +336,7 @@ export function StreakList({ streaks, challengeId }: { streaks: Streak[]; challe
 
 function TopCard({ w, rank }: { w: TopWorkout; rank: number }) {
   const [params] = useSearchParams()
-  const [failed, setFailed] = useState(false)
+  const photo = useImgFallback([thumbUrl(w.photo_url, 256), w.photo_url])
   const title = w.title || 'Check-in'
   // Mesmo contrato do feed: ?checkin=<id> abre o modal, voltar fecha.
   const search = new URLSearchParams(params)
@@ -349,12 +350,13 @@ function TopCard({ w, rank }: { w: TopWorkout; rank: number }) {
         aria-label={`${title}, de ${w.account.full_name ?? 'Sem nome'}`}
         className="group relative block aspect-[4/3] overflow-hidden rounded-[1.25rem] bg-[var(--wash)]"
       >
-        {w.photo_url && !failed ? (
+        {photo.src ? (
           <img
-            src={w.photo_url}
+            src={photo.src}
             alt=""
             loading="lazy"
-            onError={() => setFailed(true)}
+            decoding="async"
+            onError={photo.onError}
             className="h-full w-full object-cover motion-safe:transition-transform motion-safe:duration-500 group-hover:scale-[1.03]"
           />
         ) : (
