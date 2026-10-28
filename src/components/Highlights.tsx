@@ -21,7 +21,7 @@ interface AwardItem {
 }
 
 /** Prêmios na ordem do layout; os sem vencedor somem. */
-export function awardItems(ins: Insights): AwardItem[] {
+function awardItems(ins: Insights): AwardItem[] {
   const longest = streakLeaders(ins.streaks, 'longest')
   const current = streakLeaders(ins.streaks, 'current')
   const a = ins.awards
@@ -44,14 +44,16 @@ function memberLink(challengeId: number, a: Account) {
 }
 
 /** Um vencedor: avatar + nome. Empate: rostos empilhados (até 3, depois "+N") e nomes juntos. */
-function Winners({ accounts, challengeId }: { accounts: Account[]; challengeId: number }) {
+function Winners({ accounts, challengeId, wide }: { accounts: Account[]; challengeId: number; wide: boolean }) {
   if (accounts.length === 1) {
     const a = accounts[0]
     const to = memberLink(challengeId, a)
     const body = (
       <>
         <Avatar url={a.profile_picture_url} name={a.full_name} size="sm" ring />
-        <span className="truncate text-sm font-medium text-[var(--ink)]">{shortName(a.full_name ?? 'Sem nome')}</span>
+        <span className="line-clamp-2 min-w-0 text-sm font-medium leading-tight text-[var(--ink)]">
+          {shortName(a.full_name ?? 'Sem nome')}
+        </span>
       </>
     )
     return to ? (
@@ -63,8 +65,9 @@ function Winners({ accounts, challengeId }: { accounts: Account[]; challengeId: 
     )
   }
   const extra = accounts.length - MAX_FACES
+  // Card estreito: rostos em cima, nomes embaixo (lado a lado eles quebram palavra por palavra).
   return (
-    <div className="flex min-w-0 items-center gap-2">
+    <div className={`flex min-w-0 gap-2 ${wide ? 'items-center' : 'flex-col items-start'}`}>
       <ul className="flex shrink-0 -space-x-2.5">
         {accounts.slice(0, MAX_FACES).map((a, i) => {
           const to = memberLink(challengeId, a)
@@ -99,8 +102,17 @@ function AwardCard({ item, featured, challengeId }: { item: AwardItem; featured:
   return (
     <li
       aria-label={`${item.title}: ${item.value} ${unit}`}
-      className={`surface flex min-w-0 flex-col gap-4 p-4 sm:p-5 ${featured ? 'col-span-2' : ''}`}
+      className={`surface relative flex min-w-0 flex-col gap-4 overflow-hidden p-4 sm:p-5 ${featured ? 'col-span-2' : ''}`}
     >
+      {/* Marca d'água do ícone no destaque: preenche o card largo sem competir com o número. */}
+      {featured && (
+        <item.Icon
+          aria-hidden
+          size={168}
+          strokeWidth={1}
+          className="pointer-events-none absolute -bottom-6 -right-4 text-[var(--brand-from)] opacity-[0.09]"
+        />
+      )}
       <div className={`flex gap-3 ${featured ? 'items-center' : 'flex-col items-start'}`}>
         <span
           className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full ${featured ? 'brand-gradient text-white' : 'bg-[var(--tint)] text-[var(--brand-ink)]'}`}
@@ -118,7 +130,7 @@ function AwardCard({ item, featured, challengeId }: { item: AwardItem; featured:
         <span className="text-[0.8125rem] leading-snug text-[var(--ink-muted)]">{unit}</span>
       </div>
       <div className="mt-auto">
-        <Winners accounts={item.accounts} challengeId={challengeId} />
+        <Winners accounts={item.accounts} challengeId={challengeId} wide={featured} />
       </div>
     </li>
   )

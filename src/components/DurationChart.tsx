@@ -39,7 +39,7 @@ export function DurationChart({ data }: { data: WeekdayDuration[] }) {
                 tick={tick}
                 tickLine={false}
                 axisLine={false}
-                width={44}
+                width={56}
                 tickFormatter={(v: number) => `${v} min`}
               />
               <Tooltip

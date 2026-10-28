@@ -20,7 +20,8 @@ function KpiCard({ label, Icon, value, badge, detail, series, format }: CardProp
     <div role="group" aria-label={`${label}: ${value}`} className="surface flex min-w-0 flex-col overflow-hidden">
       <div className="flex flex-col gap-2 p-4 pb-1 sm:p-5 sm:pb-1">
         <p className="eyebrow flex items-center gap-1.5 truncate">
-          <Icon size={13} strokeWidth={1.75} className="shrink-0" />
+          {/* Ícone só a partir do sm: no 2×2 do celular o rótulo precisa da largura. */}
+          <Icon size={13} strokeWidth={1.75} className="hidden shrink-0 sm:block" />
           <span className="truncate">{label}</span>
         </p>
         <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
