@@ -2,7 +2,6 @@ import { useId } from 'react'
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 import type { WeekdayDuration } from '../api/types'
 import { durationRows, durationText } from '../lib/dashboard'
-import { useReducedMotion } from '../lib/motion'
 import { ChartCard } from './ChartCard'
 import { ChartTooltip } from './ChartTooltip'
 import { cursorFill, tick } from './chartStyle'
@@ -13,7 +12,6 @@ type Row = ReturnType<typeof durationRows>[number]
 export function DurationChart({ data }: { data: WeekdayDuration[] }) {
   const rows = durationRows(data)
   const gradient = `dur-${useId().replace(/:/g, '')}`
-  const reduced = useReducedMotion()
   const timed = rows.filter((r) => r.avg != null)
   const longest = timed.reduce<Row | null>((best, r) => (!best || (r.avg ?? 0) > (best.avg ?? 0) ? r : best), null)
   return (
@@ -22,7 +20,12 @@ export function DurationChart({ data }: { data: WeekdayDuration[] }) {
       className="flex-1"
       aside={longest && `treinos mais longos: ${longest.label.toLowerCase()}`}
     >
-      <div className="relative -mx-2 min-h-56 flex-1">
+      {/* Leitor de tela (e testes) leem os valores; o SVG é só a imagem. */}
+      <div
+        role="img"
+        aria-label={`Duração média por dia: ${rows.map((r) => `${r.label} ${r.avg == null ? 'sem duração' : `${r.value} min`}`).join(', ')}`}
+        className="relative -mx-2 min-h-56 flex-1"
+      >
         <div className="absolute inset-0">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={rows} margin={{ top: 0, right: 8, left: 0, bottom: 0 }}>
@@ -53,7 +56,9 @@ export function DurationChart({ data }: { data: WeekdayDuration[] }) {
                 radius={[6, 6, 6, 6]}
                 maxBarSize={40}
                 background={{ fill: 'var(--wash)', radius: 6 }}
-                isAnimationActive={!reduced}
+                // Sem animação de entrada: com o trilho de fundo, um remount no meio
+                // da animação deixava as barras com altura zero.
+                isAnimationActive={false}
               />
             </BarChart>
           </ResponsiveContainer>
