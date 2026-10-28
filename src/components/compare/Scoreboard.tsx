@@ -1,7 +1,8 @@
 import { CalendarCheck, Clock, Hourglass, type LucideIcon, Percent, UserRound, Users } from 'lucide-react'
 import { formatDecimal, formatHours } from '../../lib/dashboard'
-import { type KpiSide, deltaPct, formatDeltaPct, formatDeltaPp } from '../../lib/compare'
-import { DeltaBadge, SideDot, useNames } from './shared'
+import { type KpiSide, deltaPct, formatDeltaPct, formatDeltaPp, formatSigned } from '../../lib/compare'
+import type { ReactNode } from 'react'
+import { DeltaBadge, PpTerm, SideDot, useNames } from './shared'
 
 interface Kpi {
   id: string
@@ -39,11 +40,22 @@ const KPIS: Kpi[] = [
   },
 ]
 
-function deltaOf(kpi: Kpi, a: KpiSide, b: KpiSide): { value: number | null; text: string } | null {
+function deltaOf(kpi: Kpi, a: KpiSide, b: KpiSide): { value: number | null; text: string; node?: ReactNode } | null {
   const x = kpi.raw(a)
   const y = kpi.raw(b)
   if (x == null || y == null) return null
-  if (kpi.pp) return { value: x - y, text: formatDeltaPp(x - y) }
+  if (kpi.pp) {
+    // Diferença em pontos percentuais: a sigla ganha a explicação.
+    return {
+      value: x - y,
+      text: formatDeltaPp(x - y),
+      node: (
+        <>
+          {formatSigned(Math.round(x - y) || 0)} <PpTerm />
+        </>
+      ),
+    }
+  }
   const d = deltaPct(x, y)
   return { value: d, text: formatDeltaPct(d) }
 }
@@ -72,7 +84,7 @@ function ScoreCard({ kpi, a, b }: { kpi: Kpi; a: KpiSide; b: KpiSide }) {
         </p>
         {delta && (
           <span className="ml-auto">
-            <DeltaBadge value={delta.value} text={delta.text} />
+            <DeltaBadge value={delta.value} text={delta.node ?? delta.text} />
           </span>
         )}
       </div>

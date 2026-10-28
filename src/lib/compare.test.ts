@@ -373,11 +373,11 @@ describe('buildSummary', () => {
     expect(s.map((x) => x.id)).toEqual(['pace', 'participation', 'roster', 'mover'])
     expect(text(s)).toEqual([
       'Outubro está 6% atrás de Setembro no mesmo ponto (571 × 606 check-ins até o dia 25)',
-      'Participação diária 3 p.p. menor (45% × 48%)',
+      'Participação diária 3 pontos percentuais menor (45% × 48%)',
       '8 atletas novos e 7 saíram; 40 estão nos dois',
       'Vitor Rett foi quem mais evoluiu (+14 check-ins)',
     ])
-    expect(strong(s)).toEqual([['6% atrás'], ['3 p.p. menor'], ['8 atletas novos'], ['Vitor Rett']])
+    expect(strong(s)).toEqual([['6% atrás'], ['3 pontos percentuais menor'], ['8 atletas novos'], ['Vitor Rett']])
   })
 
   it('says ahead, tied and the whole challenge in total mode', () => {
@@ -386,6 +386,8 @@ describe('buildSummary', () => {
     const tied = buildSummary({ ...base, kpis: { a: side({ workouts: 101 }), b: side({ workouts: 100 }) }, athletes: null })
     expect(text(tied)[0]).toBe('Outubro está empatado com Setembro no mesmo ponto (101 × 100 check-ins até o dia 25)')
     expect(text(tied)[1]).toBe('Participação diária igual (45% × 45%)')
+    const one = buildSummary({ ...base, kpis: { a: side({ participation: 46 }), b: side({ participation: 45 }) }, athletes: null })
+    expect(text(one)[1]).toBe('Participação diária 1 ponto percentual maior (46% × 45%)')
   })
 
   it('uses singulars and skips what is missing', () => {

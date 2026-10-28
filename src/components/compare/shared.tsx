@@ -1,6 +1,7 @@
 import { ArrowDown, ArrowUp, Minus } from 'lucide-react'
 import { createContext, type ReactNode, useContext } from 'react'
 import { Badge } from '../ui/Badge'
+import { Tooltip } from '../ui/Tooltip'
 
 // Cores fixas da comparação: A = laranja da marca, B = ardósia neutra. Em todo gráfico e badge.
 export const COLOR = { a: 'var(--brand-from)', b: 'var(--series-b)' } as const
@@ -49,8 +50,21 @@ export function Legend() {
   )
 }
 
+export const PP_HINT = 'p.p. = pontos percentuais: diferença direta entre duas porcentagens (45% − 48% = −3 p.p.)'
+
+/** Sigla "p.p." explicada: sublinhado pontilhado, tooltip no hover/foco e title para leitor de tela. */
+export function PpTerm() {
+  return (
+    <Tooltip content={PP_HINT}>
+      <abbr title={PP_HINT} tabIndex={0} className="cursor-help underline decoration-dotted underline-offset-2">
+        p.p.
+      </abbr>
+    </Tooltip>
+  )
+}
+
 /** Variação de A sobre B com seta: verde subindo, vermelho caindo, neutro parado (como a tabela de atletas). */
-export function DeltaBadge({ value, text, label }: { value: number | null; text: string; label?: string }) {
+export function DeltaBadge({ value, text, label }: { value: number | null; text: ReactNode; label?: string }) {
   const dir = value == null || value >= 0.5 ? 'up' : value <= -0.5 ? 'down' : 'same'
   const Icon = dir === 'up' ? ArrowUp : dir === 'down' ? ArrowDown : Minus
   return (

@@ -490,7 +490,11 @@ export function buildSummary({ names, mode, n, kpis, athletes }: SummaryInput): 
       tone: pp === 0 ? 'same' : pp > 0 ? 'up' : 'down',
       parts: [
         { text: 'Participação diária ' },
-        { text: pp === 0 ? 'igual' : `${Math.abs(pp)} p.p. ${pp > 0 ? 'maior' : 'menor'}`, strong: true },
+        {
+          // Por extenso na frase: "p.p." sozinho confunde quem não conhece a sigla.
+          text: pp === 0 ? 'igual' : `${count(Math.abs(pp), 'ponto percentual', 'pontos percentuais')} ${pp > 0 ? 'maior' : 'menor'}`,
+          strong: true,
+        },
         { text: ` (${pa}% × ${pb}%)` },
       ],
     })

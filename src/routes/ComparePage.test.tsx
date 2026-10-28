@@ -162,6 +162,17 @@ describe('ComparePage', () => {
     expect(screen.getByRole('listitem', { name: /^Atletas ativos: Outubro 8\/10, Setembro 8\/10, 0%/ })).toBeInTheDocument()
   })
 
+  it('explains p.p. on the participation delta', async () => {
+    mockCompareApi()
+    renderApp('/comparar?a=1&b=2')
+    const card = await screen.findByRole('listitem', { name: /^Participação diária:/ })
+    const term = within(card).getByText('p.p.')
+    expect(term.tagName).toBe('ABBR')
+    expect(term).toHaveAttribute('title', expect.stringContaining('pontos percentuais: diferença direta entre duas porcentagens'))
+    await userEvent.hover(term)
+    expect((await screen.findAllByText(/^p\.p\. = pontos percentuais/)).length).toBeGreaterThan(0)
+  })
+
   it('opens with a verdict summary', async () => {
     mockCompareApi()
     renderApp('/comparar?a=1&b=2')
@@ -170,7 +181,7 @@ describe('ComparePage', () => {
     const items = within(list).getAllByRole('listitem').map((li) => li.textContent)
     expect(items).toEqual([
       'Outubro está 20% à frente de Setembro no mesmo ponto (120 × 100 check-ins até o dia 25)',
-      expect.stringMatching(/^Participação diária /),
+      expect.stringMatching(/^Participação diária (igual|\d+ pontos? percentua(l|is) (maior|menor)) /),
       '1 atleta novo e 1 saiu; 12 estão nos dois',
       'Atleta A foi quem mais evoluiu (+10 check-ins)',
     ])
