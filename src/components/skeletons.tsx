@@ -117,7 +117,8 @@ export function ChartsRowSkeleton({ className = 'lg:grid-cols-2' }: { className?
   return (
     <div className={`grid gap-5 ${className}`}>
       <ChartCardSkeleton>
-        <div className="mx-auto grid grid-cols-[2rem_repeat(5,var(--cell))] gap-[3px] [--cell:clamp(0.875rem,7vw,2.25rem)] sm:[--cell:2.25rem]">
+        {/* Mesma célula do HeatGrid (--cell). */}
+        <div className="mx-auto grid grid-cols-[2rem_repeat(5,var(--cell))] gap-[3px] [--cell:2.125rem]">
           <span className="col-span-6 h-[0.9375rem]" />
           {Array.from({ length: 7 }, (_, r) => (
             <div key={r} className="contents">
@@ -128,8 +129,8 @@ export function ChartsRowSkeleton({ className = 'lg:grid-cols-2' }: { className?
             </div>
           ))}
         </div>
-        <div className="flex justify-center">
-          <Bar className="h-3 w-36" />
+        <div className="mx-auto flex w-[calc(2rem+5*var(--cell)+15px)] justify-end [--cell:2.125rem]">
+          <Bar className="h-3 w-28" />
         </div>
       </ChartCardSkeleton>
       <ChartCardSkeleton>
@@ -220,8 +221,8 @@ export function WhenSkeleton() {
     <SkeletonGroup label="Carregando horários" className="flex flex-col gap-5">
       <SectionHeadSkeleton />
       <ChartCardSkeleton>
-        <div className="overflow-hidden">
-          <div className="grid min-w-[36rem] gap-[3px]" style={{ gridTemplateColumns: '2.25rem repeat(24, minmax(0, 1fr))' }}>
+        <div className="mx-auto max-w-full overflow-hidden [--cell:2.125rem]">
+          <div className="grid w-max gap-[3px]" style={{ gridTemplateColumns: '2rem repeat(24, var(--cell))' }}>
             <span className="col-span-full h-[0.9375rem]" />
             {Array.from({ length: 7 }, (_, r) => (
               <div key={r} className="contents">

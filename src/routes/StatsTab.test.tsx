@@ -148,7 +148,7 @@ describe('Dashboard (insights)', () => {
   it('labels punch card cells and the peak hour', async () => {
     renderApp('/c/1?tab=stats')
     const peak = await screen.findByRole('img', { name: 'Ter 18h · 23 check-ins' })
-    expect(screen.getByText('Horário de pico: Ter 18h · 23 check-ins')).toBeInTheDocument()
+    expect(screen.getByText('pico: Ter 18h · 23 check-ins')).toBeInTheDocument()
     expect(screen.getByRole('img', { name: 'Dom 3h · Nenhum check-in' })).toBeInTheDocument()
     expect(screen.getAllByRole('img', { name: /^(Seg|Ter|Qua|Qui|Sex|Sáb|Dom) \d+h · / })).toHaveLength(7 * 24)
     await userEvent.hover(peak)

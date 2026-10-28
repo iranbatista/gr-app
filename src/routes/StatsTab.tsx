@@ -17,7 +17,6 @@ import { StatTile } from '../components/StatTile'
 import { WeeklyChart } from '../components/WeeklyChart'
 import { WorkoutDetailDialog } from '../components/WorkoutDetail'
 import { referenceDay } from '../lib/dashboard'
-import { heatmapSummary } from '../lib/heatmap'
 
 // Antes do deploy da API nova o /insights cai no 404 genérico do FastAPI.
 function notDeployed(error: unknown): boolean {
@@ -62,7 +61,6 @@ export function StatsTab({ challengeId }: { challengeId: number }) {
   }
 
   const ref = referenceDay(challenge?.end_date)
-  const { activeDays } = heatmapSummary(s.by_day)
   const streaks = ins.data?.streaks ?? []
   const showStreaks = ins.isPending || streaks.length > 0
 
@@ -86,7 +84,7 @@ export function StatsTab({ challengeId }: { challengeId: number }) {
       <DashboardSection title="Ritmo do desafio" Icon={TrendingUp}>
         {/* Heatmap do tamanho da grade; as barras semanais ficam com o resto da largura. */}
         <div className="grid gap-5 lg:grid-cols-[minmax(0,auto)_minmax(24rem,1fr)]">
-          <DayHeatmap data={s.by_day} aside={`${activeDays} ${activeDays === 1 ? 'dia ativo' : 'dias ativos'}`} />
+          <DayHeatmap data={s.by_day} />
           <WeeklyChart data={s.by_day} />
         </div>
       </DashboardSection>
