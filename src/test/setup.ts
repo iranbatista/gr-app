@@ -11,6 +11,12 @@ class ResizeObserverStub {
 }
 globalThis.ResizeObserver ??= ResizeObserverStub as unknown as typeof ResizeObserver
 
+// Radix (Select/Popover) usa APIs de ponteiro e scroll que o jsdom não implementa.
+Element.prototype.hasPointerCapture ??= () => false
+Element.prototype.setPointerCapture ??= () => {}
+Element.prototype.releasePointerCapture ??= () => {}
+Element.prototype.scrollIntoView ??= () => {}
+
 beforeAll(() => server.listen({ onUnhandledFrame: 'error' }))
 afterEach(() => {
   cleanup()

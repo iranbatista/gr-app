@@ -141,6 +141,19 @@
   .btn-secondary {
     @apply inline-flex h-10 items-center justify-center rounded-full border border-[var(--hairline)] bg-[var(--card)] px-6 text-sm font-medium text-[var(--ink-muted)] transition-colors hover:bg-[var(--tint)] hover:text-[var(--brand-ink)] disabled:cursor-not-allowed disabled:opacity-45;
   }
+  /* Entradas de overlay: fade, painel central e bottom sheet. */
+  @keyframes fade-in {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+  @keyframes pop-in {
+    from { opacity: 0; transform: translate(var(--tw-translate-x, 0), var(--tw-translate-y, 0)) scale(0.97); }
+    to { opacity: 1; transform: translate(var(--tw-translate-x, 0), var(--tw-translate-y, 0)) scale(1); }
+  }
+  @keyframes sheet-up {
+    from { transform: translateY(100%); }
+    to { transform: translateY(0); }
+  }
   /* Sweep de carregamento no lugar da foto. */
   .sweep {
     animation: sweep 1.5s ease-in-out infinite;
