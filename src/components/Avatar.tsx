@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { initials } from '../lib/visual'
 
 const SIZES = {
+  xs: 'h-6 w-6 text-[0.625rem]',
   sm: 'h-7 w-7 text-[0.6875rem]',
   md: 'h-10 w-10 text-sm',
   lg: 'h-24 w-24 text-[1.75rem]',

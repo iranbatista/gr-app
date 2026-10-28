@@ -35,17 +35,17 @@ function groupByDay(items: Workout[]): [string, Workout[]][] {
 /** Cartão vazio no formato do check-in: foto, membro, título e pills. */
 function WorkoutSkeleton() {
   return (
-    <div aria-hidden className="surface flex flex-col gap-4 p-3">
-      <div className="aspect-video w-full rounded-[1.25rem] bg-[var(--wash)]" />
-      <div className="flex flex-col gap-3 px-2 pb-2">
+    <div aria-hidden className="surface flex flex-col gap-3 rounded-[1.375rem] p-2.5">
+      <div className="aspect-[4/3] w-full rounded-[1rem] bg-[var(--wash)]" />
+      <div className="flex flex-col gap-2 px-1.5 pb-1.5">
         <div className="flex items-center gap-2">
-          <div className="h-7 w-7 rounded-full bg-[var(--wash)]" />
-          <div className="h-3 w-28 rounded-full bg-[var(--wash)]" />
+          <div className="h-6 w-6 rounded-full bg-[var(--wash)]" />
+          <div className="h-3 w-24 rounded-full bg-[var(--wash)]" />
         </div>
-        <div className="h-4 w-40 rounded-full bg-[var(--wash)]" />
-        <div className="flex gap-1.5">
-          <div className="h-5 w-16 rounded-full bg-[var(--wash)]" />
-          <div className="h-5 w-14 rounded-full bg-[var(--wash)]" />
+        <div className="h-3.5 w-36 rounded-full bg-[var(--wash)]" />
+        <div className="flex gap-1">
+          <div className="h-4 w-14 rounded-full bg-[var(--wash)]" />
+          <div className="h-4 w-12 rounded-full bg-[var(--wash)]" />
         </div>
       </div>
     </div>
@@ -57,8 +57,8 @@ export function WorkoutList({ challengeId, filters, showMember = true }: Props) 
 
   if (q.isPending) {
     return (
-      <div className="grid animate-pulse gap-5 sm:grid-cols-2">
-        {Array.from({ length: 4 }, (_, i) => (
+      <div className="grid animate-pulse grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        {Array.from({ length: 6 }, (_, i) => (
           <WorkoutSkeleton key={i} />
         ))}
       </div>
@@ -87,7 +87,7 @@ export function WorkoutList({ challengeId, filters, showMember = true }: Props) 
             <h3 className="eyebrow shrink-0">{key === NO_DATE ? 'Sem data' : dayLabel(key)}</h3>
             <span aria-hidden className="h-px flex-1 bg-[var(--hairline)]" />
           </div>
-          <div className="grid gap-5 sm:grid-cols-2">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {group.map((w) => (
               <WorkoutCard key={w.id} workout={w} showMember={showMember} />
             ))}
