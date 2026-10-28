@@ -22,42 +22,36 @@ describe('FeedTab', () => {
     renderApp('/c/1?tab=feed&member=12')
     await screen.findByText('Bike')
     expect(screen.getAllByRole('article')).toHaveLength(1)
-    // filtro aplicado aparece como chip removível
-    expect(await screen.findByRole('button', { name: 'Remover filtro Bruno Lima' })).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: /Filtros/ })).toHaveTextContent('1')
+    expect(await screen.findByRole('combobox', { name: 'Membro' })).toHaveTextContent('Bruno Lima')
   })
 
-  it('removes a filter from its chip', async () => {
-    renderApp('/c/1?tab=feed&member=12&since=2026-10-01')
-    await screen.findByText('Bike')
-    expect(screen.getByRole('button', { name: 'Remover filtro desde 01/10' })).toBeInTheDocument()
-    await userEvent.click(await screen.findByRole('button', { name: 'Remover filtro Bruno Lima' }))
-    expect(await screen.findAllByRole('article')).toHaveLength(3)
-    expect(screen.queryByRole('button', { name: 'Remover filtro Bruno Lima' })).not.toBeInTheDocument()
-  })
-
-  it('changes member filter via the filters dialog', async () => {
+  it('changes member filter via the select', async () => {
     renderApp('/c/1?tab=feed')
     await screen.findAllByRole('article')
-    await userEvent.click(screen.getByRole('button', { name: /Filtros/ }))
-    const dialog = await screen.findByRole('dialog', { name: 'Filtros' })
-    await userEvent.click(within(dialog).getByRole('combobox', { name: 'Membro' }))
+    await userEvent.click(screen.getByRole('combobox', { name: 'Membro' }))
     await userEvent.click(await screen.findByRole('option', { name: 'Bruno Lima' }))
-    // nada muda até aplicar (o fundo fica aria-hidden com o modal aberto)
-    expect(screen.getAllByRole('article', { hidden: true })).toHaveLength(3)
-    await userEvent.click(within(dialog).getByRole('button', { name: 'Aplicar' }))
-    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
-    expect(await screen.findByRole('button', { name: 'Remover filtro Bruno Lima' })).toBeInTheDocument()
     await waitFor(() => expect(screen.getAllByRole('article')).toHaveLength(1))
     expect(screen.getByText('Bike')).toBeInTheDocument()
   })
 
-  it('clears every filter from the dialog', async () => {
-    renderApp('/c/1?tab=feed&member=12')
+  it('applies a date as soon as it is picked', async () => {
+    renderApp('/c/1?tab=feed')
+    await screen.findAllByRole('article')
+    expect(screen.queryByRole('button', { name: 'Limpar' })).not.toBeInTheDocument()
+    await userEvent.click(screen.getByRole('button', { name: 'Desde' }))
+    await userEvent.click(within(await screen.findByRole('grid')).getByRole('button', { name: /\b20\b/ }))
+    expect(screen.getByRole('button', { name: 'Desde' })).toHaveTextContent(/^20\/\d{2}\/\d{4}$/)
+    expect(screen.getByRole('button', { name: 'Limpar' })).toBeInTheDocument()
+  })
+
+  it('clears every filter with Limpar', async () => {
+    renderApp('/c/1?tab=feed&member=12&since=2026-10-01')
     await screen.findByText('Bike')
-    await userEvent.click(screen.getByRole('button', { name: /Filtros/ }))
-    await userEvent.click(await screen.findByRole('button', { name: 'Limpar filtros' }))
+    await userEvent.click(screen.getByRole('button', { name: 'Limpar' }))
     expect(await screen.findAllByRole('article')).toHaveLength(3)
+    expect(screen.getByRole('combobox', { name: 'Membro' })).toHaveTextContent('Todos')
+    expect(screen.getByRole('button', { name: 'Desde' })).toHaveTextContent('dd/mm/aaaa')
+    expect(screen.queryByRole('button', { name: 'Limpar' })).not.toBeInTheDocument()
   })
 
   it('loads more pages', async () => {
