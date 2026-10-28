@@ -1,4 +1,4 @@
-import type { Challenge, RankingEntry, Stats, SyncMeta, Workout } from '../api/types'
+import type { Challenge, Comment, RankingEntry, Stats, SyncMeta, Workout } from '../api/types'
 
 export const API = 'http://api.test'
 
@@ -51,15 +51,50 @@ export function makeWorkout(over: Partial<Workout> = {}): Workout {
     description: null,
     photo_url: null,
     media: null,
+    reactions: [],
+    comment_count: null,
     ...over,
   }
 }
 
 export const workouts: Workout[] = [
   // mais recente primeiro, como a API devolve
-  makeWorkout({ id: 102, title: 'Musculação', occurred_at: '2026-10-21T18:00:00Z', distance: null }),
+  makeWorkout({
+    id: 102,
+    title: 'Musculação',
+    occurred_at: '2026-10-21T18:00:00Z',
+    distance: null,
+    description: 'Peito e tríceps\nsérie pesada',
+    photo_url: 'https://img.test/w102-a.jpg',
+    media: [
+      { id: 1, url: 'https://img.test/w102-a.jpg', medium_type: 'image/jpg', width: 1080, height: 1920, aspect_ratio: 0.5625 },
+      { id: 2, url: 'https://img.test/w102-b.jpg', medium_type: 'image/jpg', width: 1080, height: 1080, aspect_ratio: 1 },
+      { id: 3, url: 'https://img.test/w102-c.mp4', medium_type: 'video/mp4', thumbnail_url: 'https://img.test/w102-c.jpg' },
+    ],
+    reactions: [
+      { reaction: '😂', account: bruno },
+      { reaction: '😂', account: { id: 13, full_name: 'Caio Prado Neto', profile_picture_url: null } },
+      { reaction: '🔥', account: bruno },
+    ],
+    comment_count: 2,
+  }),
   makeWorkout({ id: 101, title: 'Corrida' }),
   makeWorkout({ id: 103, title: 'Bike', account: bruno }),
+]
+
+// Só existe no endpoint de check-in único (fora da primeira página do feed).
+export const loneWorkout = makeWorkout({ id: 999, title: 'Treino antigo', occurred_at: '2026-09-01T10:00:00Z' })
+
+export const comments: Comment[] = [
+  {
+    id: 1,
+    workout_id: 102,
+    content: 'Monstro!\nAmanhã tem mais',
+    created_at: '2026-10-21T19:00:00Z',
+    account: bruno,
+    reactions: [{ reaction: '❤️', account: ana }],
+  },
+  { id: 2, workout_id: 102, content: 'Bora', created_at: '2026-10-21T20:00:00Z', account: ana, reactions: [] },
 ]
 
 export const stats: Stats = {

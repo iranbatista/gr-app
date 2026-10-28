@@ -7,6 +7,20 @@ export type Challenge = Schemas['Challenge']
 export type RankingEntry = Schemas['RankingEntry']
 export type Workout = Schemas['Workout']
 export type WorkoutPage = Schemas['WorkoutPage']
+export type Reaction = Schemas['Reaction']
+export type Comment = Schemas['Comment']
+
+// `media` vem sem schema na API (unknown): formato observado nos check-ins reais.
+export interface WorkoutMedium {
+  id: number
+  url: string
+  width?: number | null
+  height?: number | null
+  /** "image/jpg", "video/mp4"… */
+  medium_type?: string | null
+  thumbnail_url?: string | null
+  aspect_ratio?: number | null
+}
 
 // /stats e /meta/sync não têm response_model na API: tipos espelham api.py.
 export interface DayCount {

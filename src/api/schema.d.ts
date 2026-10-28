@@ -123,6 +123,49 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/workouts/{wid}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Workout
+         * @description Um check-in (do banco), com reacoes embutidas e o comment_count.
+         */
+        get: operations["get_workout_workouts__wid__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/workouts/{wid}/comments": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Workout Comments
+         * @description Comentarios de um check-in. Buscados no GymRats sob demanda (cache ~60s).
+         *
+         *     Cada comentario tem autor, texto, data e suas proprias reacoes.
+         *     Requer GYMRATS_TOKEN configurado na API.
+         */
+        get: operations["workout_comments_workouts__wid__comments_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/challenges/{cid}/stats": {
         parameters: {
             query?: never;
@@ -133,6 +176,8 @@ export interface paths {
         /**
          * Challenge Stats
          * @description Agregados prontos para dashboard: total, check-ins por dia e por membro.
+         *
+         *     Dias sao contados no fuso GYMRATS_TZ (default America/Sao_Paulo).
          */
         get: operations["challenge_stats_challenges__cid__stats_get"];
         put?: never;
@@ -203,6 +248,25 @@ export interface components {
             /** Synced At */
             synced_at?: string | null;
         };
+        /** Comment */
+        Comment: {
+            /** Id */
+            id: number;
+            /** Workout Id */
+            workout_id?: number | null;
+            /** Content */
+            content?: string | null;
+            /** Created At */
+            created_at?: string | null;
+            account: components["schemas"]["Account"];
+            /**
+             * Reactions
+             * @default []
+             */
+            reactions: components["schemas"]["Reaction"][];
+            /** Media Details */
+            media_details?: unknown | null;
+        };
         /** HTTPValidationError */
         HTTPValidationError: {
             /** Detail */
@@ -229,6 +293,12 @@ export interface components {
             rank?: number | null;
             /** Score */
             score?: number | null;
+            account: components["schemas"]["Account"];
+        };
+        /** Reaction */
+        Reaction: {
+            /** Reaction */
+            reaction?: string | null;
             account: components["schemas"]["Account"];
         };
         /** ValidationError */
@@ -275,6 +345,13 @@ export interface components {
             photo_url?: string | null;
             /** Media */
             media?: unknown | null;
+            /**
+             * Reactions
+             * @default []
+             */
+            reactions: components["schemas"]["Reaction"][];
+            /** Comment Count */
+            comment_count?: number | null;
         };
         /** WorkoutPage */
         WorkoutPage: {
@@ -495,6 +572,72 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["WorkoutPage"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_workout_workouts__wid__get: {
+        parameters: {
+            query?: never;
+            header?: {
+                "x-api-key"?: string | null;
+            };
+            path: {
+                wid: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Workout"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    workout_comments_workouts__wid__comments_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                "x-api-key"?: string | null;
+            };
+            path: {
+                wid: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Comment"][];
                 };
             };
             /** @description Validation Error */

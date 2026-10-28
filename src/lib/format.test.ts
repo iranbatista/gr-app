@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest'
 import {
   dayLabel,
+  formatCommentTime,
+  formatDateTime,
   formatCalories,
   formatDate,
   formatDistance,
@@ -82,5 +84,20 @@ describe('format', () => {
     // virada de mês e de ano
     expect(dayLabel('2026-09-30', new Date('2026-10-01T08:00:00'))).toBe('Ontem')
     expect(dayLabel('2025-12-31', new Date('2026-01-01T00:30:00'))).toBe('Ontem')
+  })
+})
+
+describe('formatDateTime', () => {
+  it('formats local date and time', () => {
+    expect(formatDateTime('2026-10-27T21:50:00Z')).toBe('27/10/2026 às 18:50')
+    expect(formatDateTime(null)).toBe('—')
+  })
+})
+
+describe('formatCommentTime', () => {
+  it('is relative within a day, absolute after', () => {
+    const now = new Date('2026-10-27T21:00:00Z')
+    expect(formatCommentTime('2026-10-27T19:00:00Z', now)).toBe('há 2 h')
+    expect(formatCommentTime('2026-10-25T21:50:00Z', now)).toBe('25/10 às 18:50')
   })
 })

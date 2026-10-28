@@ -1,6 +1,6 @@
 import { useInfiniteQuery, useQuery } from '@tanstack/react-query'
 import { apiGet } from './client'
-import type { Challenge, RankingEntry, Stats, SyncMeta, WorkoutPage } from './types'
+import type { Challenge, Comment, RankingEntry, Stats, SyncMeta, Workout, WorkoutPage } from './types'
 
 export const PAGE_SIZE = 30
 const MAX_LIMIT = 1000
@@ -85,5 +85,23 @@ export function useSync() {
   return useQuery({
     queryKey: ['sync'],
     queryFn: () => apiGet<SyncMeta>('/meta/sync'),
+  })
+}
+
+export function useWorkout(wid: number, { enabled = true }: { enabled?: boolean } = {}) {
+  return useQuery({
+    queryKey: ['workout', wid],
+    queryFn: () => apiGet<Workout>(`/workouts/${wid}`),
+    enabled,
+  })
+}
+
+// A API faz proxy ao GymRats com cache de ~60s: não adianta buscar mais que isso.
+export function useWorkoutComments(wid: number, { enabled = true }: { enabled?: boolean } = {}) {
+  return useQuery({
+    queryKey: ['comments', wid],
+    queryFn: () => apiGet<Comment[]>(`/workouts/${wid}/comments`),
+    enabled,
+    staleTime: 60_000,
   })
 }

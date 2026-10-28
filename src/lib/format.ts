@@ -75,3 +75,20 @@ export function dayLabel(dayKey: string, now: Date = new Date()): string {
   const [y, m, d] = dayKey.split('-')
   return Number(y) === now.getFullYear() ? `${d}/${m}` : `${d}/${m}/${y}`
 }
+
+const timeFmt = new Intl.DateTimeFormat(LOCALE, { hour: '2-digit', minute: '2-digit' })
+
+// "27/10/2026 às 18:50", no fuso local.
+export function formatDateTime(iso?: string | null): string {
+  if (!iso) return EMPTY
+  const d = new Date(iso)
+  return `${dateFmt.format(d)} às ${timeFmt.format(d)}`
+}
+
+// Comentário: relativo no primeiro dia ("há 2 h"), depois "25/10 às 18:50".
+export function formatCommentTime(iso?: string | null, now: Date = new Date()): string {
+  if (!iso) return EMPTY
+  const d = new Date(iso)
+  if (now.getTime() - d.getTime() < 24 * 3_600_000) return formatRelative(iso, now)
+  return `${shortDateFmt.format(d)} às ${timeFmt.format(d)}`
+}

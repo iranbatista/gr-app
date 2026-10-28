@@ -1,11 +1,12 @@
 import { ChevronDown, Dumbbell } from 'lucide-react'
 import { type WorkoutFilters, useWorkouts } from '../api/queries'
-import type { Workout } from '../api/types'
+import type { Workout, WorkoutPage } from '../api/types'
 import { dayLabel, localDayKey } from '../lib/format'
 import { EmptyState } from './EmptyState'
 import { ErrorState } from './ErrorState'
 import { Button } from './ui/Button'
 import { WorkoutCard } from './WorkoutCard'
+import { WorkoutDetailDialog } from './WorkoutDetail'
 import { WorkoutCardSkeleton, WorkoutsSkeleton, workoutGrid } from './skeletons'
 import { SkeletonGroup } from './ui/Skeleton'
 
@@ -34,15 +35,34 @@ function groupByDay(items: Workout[]): [string, Workout[]][] {
   return out
 }
 
-export function WorkoutList({ challengeId, filters, showMember = true }: Props) {
+// páginas por offset podem se sobrepor quando há check-ins novos entre as requisições
+function flatten(pages: WorkoutPage[]): Workout[] {
+  const seen = new Set<number>()
+  return pages.flatMap((p) => p.items).filter((w) => !seen.has(w.id) && seen.add(w.id))
+}
+
+export function WorkoutList(props: Props) {
+  // Mesma query (mesmo cache) do corpo: o modal precisa dos itens já carregados.
+  const q = useWorkouts(props.challengeId, props.filters)
+  return (
+    <>
+      <WorkoutListBody {...props} />
+      <WorkoutDetailDialog
+        items={q.data ? flatten(q.data.pages) : []}
+        ready={!q.isPending}
+        challengeId={props.challengeId}
+      />
+    </>
+  )
+}
+
+function WorkoutListBody({ challengeId, filters, showMember = true }: Props) {
   const q = useWorkouts(challengeId, filters)
 
   if (q.isPending) return <WorkoutsSkeleton showMember={showMember} />
   if (q.isError) return <ErrorState error={q.error} onRetry={() => q.refetch()} />
 
-  // páginas por offset podem se sobrepor quando há check-ins novos entre as requisições
-  const seen = new Set<number>()
-  const items = q.data.pages.flatMap((p) => p.items).filter((w) => !seen.has(w.id) && seen.add(w.id))
+  const items = flatten(q.data.pages)
   if (items.length === 0) {
     const filtered = filters.member != null || !!filters.since || !!filters.until
     return (

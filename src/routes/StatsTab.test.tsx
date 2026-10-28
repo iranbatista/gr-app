@@ -74,7 +74,7 @@ describe('StatsTab', () => {
   })
 
   it('disables active days while the API does not send it', async () => {
-    const by_member = stats.by_member.map(({ active_days: _, ...m }) => m)
+    const by_member = stats.by_member.map((m) => ({ ...m, active_days: undefined }))
     server.use(http.get(`${API}/challenges/:id/stats`, () => HttpResponse.json({ ...stats, by_member })))
     renderApp('/c/1?tab=stats&metric=dias')
     const metric = await screen.findByRole('group', { name: 'Métrica' })

@@ -30,6 +30,11 @@ export function Dialog({ open, onOpenChange, title, eyebrow, children, footer, s
         <D.Overlay className="fixed inset-0 z-40 bg-[rgba(20,18,17,0.38)] backdrop-blur-[3px] data-[state=open]:animate-[fade-in_180ms_ease-out] motion-reduce:animate-none" />
         <D.Content
           aria-describedby={undefined}
+          // Foco vai para o painel, não para o X: sem anel laranja no botão ao abrir.
+          onOpenAutoFocus={(e) => {
+            e.preventDefault()
+            ;(e.currentTarget as HTMLElement).focus()
+          }}
           className={`surface fixed inset-x-0 bottom-0 z-50 flex max-h-[92dvh] flex-col rounded-b-none outline-none data-[state=open]:animate-[sheet-up_240ms_cubic-bezier(0.2,0.8,0.2,1)] motion-reduce:animate-none sm:inset-x-auto sm:bottom-auto sm:left-1/2 sm:top-1/2 sm:max-h-[88vh] sm:w-[calc(100%-3rem)] sm:-translate-x-1/2 sm:-translate-y-1/2 sm:rounded-b-[1.75rem] sm:data-[state=open]:animate-[pop-in_180ms_ease-out] ${SIZES[size]}`}
         >
           {/* Alça do bottom sheet: só no celular. */}
