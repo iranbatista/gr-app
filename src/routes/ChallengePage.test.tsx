@@ -2,7 +2,7 @@ import { screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { http, HttpResponse } from 'msw'
 import { describe, expect, it } from 'vitest'
-import { API } from '../test/fixtures'
+import { API, challenge } from '../test/fixtures'
 import { renderApp } from '../test/render'
 import { server } from '../test/server'
 
@@ -57,5 +57,17 @@ describe('ChallengePage', () => {
     expect(await screen.findByText('Bike')).toBeInTheDocument()
     expect(screen.getByRole('combobox', { name: 'Membro' })).toHaveTextContent('Bruno Lima')
     expect(screen.getAllByRole('article')).toHaveLength(1)
+  })
+
+  it('links to the comparison with the previous challenge', async () => {
+    renderApp('/c/1')
+    expect(await screen.findByRole('link', { name: 'Comparar com…' })).toHaveAttribute('href', '/comparar?a=1&b=2')
+  })
+
+  it('hides the comparison link when there is no other challenge', async () => {
+    server.use(http.get(`${API}/challenges`, () => HttpResponse.json([challenge])))
+    renderApp('/c/1')
+    await screen.findByRole('heading', { name: 'Desafio Outubro' })
+    expect(screen.queryByRole('link', { name: 'Comparar com…' })).not.toBeInTheDocument()
   })
 })

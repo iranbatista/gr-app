@@ -1,12 +1,14 @@
-import { Activity, ArrowLeft, CalendarDays, LayoutDashboard, ListOrdered, Users } from 'lucide-react'
+import { Activity, ArrowLeft, CalendarDays, GitCompareArrows, LayoutDashboard, ListOrdered, Users } from 'lucide-react'
 import { Link, useParams, useSearchParams } from 'react-router-dom'
 import { ApiError } from '../api/client'
-import { useChallenge } from '../api/queries'
+import { useChallenge, useChallenges } from '../api/queries'
 import { Cover } from '../components/Cover'
 import { ErrorState } from '../components/ErrorState'
 import { ChallengeHeroSkeleton } from '../components/skeletons'
 import { StatusBadge } from '../components/StatusBadge'
+import { buttonClass } from '../components/ui/Button'
 import { segmentClass } from '../components/ui/SegmentedControl'
+import { previousOf } from '../lib/compare'
 import { formatPeriod } from '../lib/format'
 import { backLinkClass, icon, pageClass } from '../lib/ui'
 import { isActive } from '../lib/visual'
@@ -32,6 +34,8 @@ export function ChallengePage() {
   const tab = currentTab(params.get('tab'))
   const valid = Number.isFinite(id)
   const q = useChallenge(id, valid)
+  // B padrão do "Comparar com…": o desafio anterior por data (some se não há outro).
+  const other = previousOf(useChallenges().data ?? [], id)
 
   if (!valid) {
     return (
@@ -78,10 +82,18 @@ export function ChallengePage() {
           <h1 className="break-words font-heading text-[1.875rem] font-semibold leading-[1.1] tracking-tight text-[var(--ink)] sm:text-[2.25rem]">
             {c.name ?? `Desafio #${c.id}`}
           </h1>
-          <p className="flex items-center gap-1.5 text-sm text-[var(--ink-muted)]">
-            <Users {...icon} />
-            {c.member_count ?? 0} atletas no desafio
-          </p>
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <p className="flex items-center gap-1.5 text-sm text-[var(--ink-muted)]">
+              <Users {...icon} />
+              {c.member_count ?? 0} atletas no desafio
+            </p>
+            {other && (
+              <Link to={`/comparar?a=${c.id}&b=${other.id}`} className={buttonClass('secondary', 'sm')}>
+                <GitCompareArrows size={14} strokeWidth={1.75} />
+                Comparar com…
+              </Link>
+            )}
+          </div>
           {c.description && (
             <p className="max-w-2xl whitespace-pre-line text-[15px] leading-relaxed text-[var(--ink)]/80">
               {c.description}

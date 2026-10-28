@@ -83,4 +83,9 @@ describe('ChallengesPage', () => {
     await userEvent.click(await screen.findByRole('button', { name: 'Tentar de novo' }))
     expect(await screen.findByText('Desafio Outubro')).toBeInTheDocument()
   })
+
+  it('links to the comparison page', async () => {
+    renderApp('/')
+    expect(await screen.findByRole('link', { name: 'Comparar' })).toHaveAttribute('href', '/comparar')
+  })
 })

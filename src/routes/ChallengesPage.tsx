@@ -1,4 +1,4 @@
-import { CalendarDays, Dumbbell, Trophy, Users } from 'lucide-react'
+import { CalendarDays, Dumbbell, GitCompareArrows, Trophy, Users } from 'lucide-react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { useChallenges } from '../api/queries'
 import type { Challenge } from '../api/types'
@@ -7,6 +7,7 @@ import { EmptyState } from '../components/EmptyState'
 import { ErrorState } from '../components/ErrorState'
 import { ChallengesSkeleton, challengeGrid } from '../components/skeletons'
 import { StatusBadge } from '../components/StatusBadge'
+import { buttonClass } from '../components/ui/Button'
 import { SegmentedControl } from '../components/ui/SegmentedControl'
 import { formatPeriod } from '../lib/format'
 import { icon, pageClass } from '../lib/ui'
@@ -122,14 +123,23 @@ export function ChallengesPage() {
 
   return (
     <main className={`${pageClass} flex flex-col gap-10`}>
-      <header className="space-y-3">
-        <p className="eyebrow">GymRats</p>
-        <h1 className="max-w-2xl font-heading text-[2.25rem] font-semibold leading-[1.1] tracking-tight text-[var(--ink)] sm:text-[2.5rem]">
-          Desafios em <span className="brand-text">andamento</span>
-        </h1>
-        <p className="flex max-w-xl flex-wrap items-center gap-x-4 gap-y-1 text-[15px] leading-relaxed text-[var(--ink-muted)]">
-          {legenda}
-        </p>
+      <header className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
+        <div className="space-y-3">
+          <p className="eyebrow">GymRats</p>
+          <h1 className="max-w-2xl font-heading text-[2.25rem] font-semibold leading-[1.1] tracking-tight text-[var(--ink)] sm:text-[2.5rem]">
+            Desafios em <span className="brand-text">andamento</span>
+          </h1>
+          <p className="flex max-w-xl flex-wrap items-center gap-x-4 gap-y-1 text-[15px] leading-relaxed text-[var(--ink-muted)]">
+            {legenda}
+          </p>
+        </div>
+        {/* Comparar só faz sentido com dois desafios ou mais; o par padrão sai da própria página. */}
+        {total > 1 && (
+          <Link to="/comparar" className={`${buttonClass('secondary')} self-start sm:self-auto`}>
+            <GitCompareArrows {...icon} />
+            Comparar
+          </Link>
+        )}
       </header>
       <div className="flex flex-col gap-6">
         {q.data && q.data.length > 0 && (
