@@ -2,7 +2,7 @@ import type { HeatLevel } from '../lib/heatmap'
 import { Tooltip } from './ui/Tooltip'
 
 /** Linhas de todo heatmap: semana começando na segunda. */
-export const HEAT_ROWS = ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom']
+const HEAT_ROWS = ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom']
 
 export interface HeatGridCell {
   count: number
