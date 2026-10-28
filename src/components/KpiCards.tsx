@@ -1,38 +1,49 @@
-import { CalendarCheck, Clock, type LucideIcon, Users, UserRound } from 'lucide-react'
+import { CalendarCheck, Clock, type LucideIcon, TrendingDown, TrendingUp, UserRound, Users } from 'lucide-react'
 import type { ReactNode } from 'react'
 import type { Insights } from '../api/types'
-import { dashboardKpis, formatDecimal, formatDelta, formatHours, type SparkPoint } from '../lib/dashboard'
+import { SPARK_DAYS, type SparkPoint, compareText, dashboardKpis, formatDecimal, formatHours } from '../lib/dashboard'
 import { Sparkline } from './Sparkline'
-import { Badge } from './ui/Badge'
 
 interface CardProps {
   label: string
   Icon: LucideIcon
+  /** Número principal (o que o rótulo diz). */
   value: string
-  badge?: ReactNode
-  detail: string
+  /** Complemento menor ao lado do número ("/48"). */
+  suffix?: string
+  /** Contexto em palavras, uma linha. */
+  detail: ReactNode
   series: SparkPoint[]
   format: (v: number) => string
 }
 
-function KpiCard({ label, Icon, value, badge, detail, series, format }: CardProps) {
+function KpiCard({ label, Icon, value, suffix, detail, series, format }: CardProps) {
   return (
-    <div role="group" aria-label={`${label}: ${value}`} className="surface flex min-w-0 flex-col overflow-hidden">
-      <div className="flex flex-col gap-2 p-4 pb-1 sm:p-5 sm:pb-1">
-        <p className="eyebrow flex items-center gap-1.5 truncate">
-          {/* Ícone só a partir do sm: no 2×2 do celular o rótulo precisa da largura. */}
+    <div
+      role="group"
+      aria-label={`${label}: ${value}${suffix ?? ''}`}
+      className="surface flex min-w-0 flex-col overflow-hidden"
+    >
+      <div className="flex flex-col gap-2 p-4 pb-2 sm:p-5 sm:pb-2">
+        {/* Celular: rótulo pode quebrar e reserva 2 linhas, os números ficam alinhados no 2×2.
+            Ícone só a partir do sm, onde há largura. */}
+        <p className="eyebrow flex min-h-[2.5em] items-start gap-1.5 leading-[1.25] sm:min-h-0 sm:items-center">
           <Icon size={13} strokeWidth={1.75} className="hidden shrink-0 sm:block" />
-          <span className="truncate">{label}</span>
+          <span className="line-clamp-2 sm:truncate">{label}</span>
         </p>
-        <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-          <span className="font-heading text-[1.75rem] font-semibold leading-none tracking-tight text-[var(--ink)] tabular-nums sm:text-[2rem]">
-            {value}
-          </span>
-          {badge}
-        </div>
+        <p className="font-heading leading-none tracking-tight text-[var(--ink)] tabular-nums">
+          <span className="text-[1.75rem] font-semibold sm:text-[2rem]">{value}</span>
+          {suffix && <span className="ml-0.5 text-base font-medium text-[var(--ink-muted)]">{suffix}</span>}
+        </p>
         <p className="text-[0.8125rem] leading-snug text-[var(--ink-muted)]">{detail}</p>
       </div>
-      <Sparkline data={series} format={format} className="mt-auto h-14 w-full" />
+      <div className="mt-auto">
+        {/* Legenda da sparkline: sem ela a linha não diz de quando é. */}
+        <span className="block px-4 text-[0.625rem] font-medium uppercase tracking-[0.12em] text-[var(--ink-muted)] sm:px-5">
+          últimos {SPARK_DAYS} dias
+        </span>
+        <Sparkline data={series} format={format} className="h-14 w-full" />
+      </div>
     </div>
   )
 }
@@ -40,53 +51,63 @@ function KpiCard({ label, Icon, value, badge, detail, series, format }: CardProp
 const plural = (n: number, one: string, many: string) => `${n} ${n === 1 ? one : many}`
 const percent = (v: number) => `${Math.round(v)}%`
 
-/** Quatro KPIs do topo, cada um com a tendência dos últimos 14 dias. */
+/** Variação em palavras, com seta só como apoio (verde subindo, neutra caindo). */
+function Compare({ value, previous, isToday }: { value: number; previous: number; isToday: boolean }) {
+  const diff = value - previous
+  const Arrow = diff > 0 ? TrendingUp : diff < 0 ? TrendingDown : null
+  return (
+    <span className="inline-flex items-center gap-1">
+      {Arrow && (
+        <Arrow
+          size={13}
+          strokeWidth={2}
+          className={`shrink-0 ${diff > 0 ? 'text-[var(--positive)]' : 'text-[var(--ink-muted)]'}`}
+        />
+      )}
+      {compareText(value, previous, isToday)}
+    </span>
+  )
+}
+
+/** Quatro KPIs do topo; cada um se lê como frase: rótulo + número + contexto. */
 export function KpiCards({ insights, refDay, isToday }: { insights: Insights; refDay: string; isToday: boolean }) {
   const k = dashboardKpis(insights, refDay)
-  const delta = k.checkins.delta
-  const since = isToday ? 'ontem' : 'dia anterior'
-  const relative = isToday ? 'em relação a ontem' : 'em relação ao dia anterior'
+  const when = isToday ? 'hoje' : 'no último dia'
   return (
     <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
       <KpiCard
-        label={isToday ? 'Check-ins hoje' : 'Último dia'}
+        label={`Check-ins ${when}`}
         Icon={CalendarCheck}
         value={String(k.checkins.value)}
-        badge={
-          <Badge
-            tone={delta > 0 ? 'positive' : 'wash'}
-            size="xs"
-            aria-label={`${formatDelta(delta)} ${relative}`}
-          >
-            {formatDelta(delta)}
-          </Badge>
-        }
-        detail={`vs ${since}`}
+        detail={<Compare value={k.checkins.value} previous={k.checkins.previous} isToday={isToday} />}
         series={k.checkins.series}
         format={(v) => plural(v, 'check-in', 'check-ins')}
       />
       <KpiCard
-        label="Participação"
+        label={`Atletas ativos ${when}`}
         Icon={Users}
-        value={percent(k.participation.pct)}
-        detail={`média 7 dias: ${percent(k.participation.avg7)}`}
+        value={String(k.participation.athletes)}
+        suffix={`/${k.participation.members}`}
+        detail={`${percent(k.participation.pct)} do grupo · média 7 dias ${percent(k.participation.avg7)}`}
         series={k.participation.series}
-        format={(v) => `${percent(v)} dos atletas`}
+        format={(v) => `${percent(v)} do grupo`}
       />
       <KpiCard
-        label="Média por atleta"
+        label="Check-ins por atleta"
         Icon={UserRound}
         value={formatDecimal(k.perAthlete.value)}
-        detail={`de ${plural(k.perAthlete.active, 'atleta ativo', 'atletas ativos')}`}
+        detail={`média do grupo (${k.perAthlete.workouts} ÷ ${k.perAthlete.members})`}
         series={k.perAthlete.series}
-        format={(v) => `${formatDecimal(v)} check-ins por atleta`}
+        format={(v) => `${formatDecimal(v)} por atleta`}
       />
       <KpiCard
         label="Horas treinadas"
         Icon={Clock}
         value={formatHours(k.hours.hours)}
         detail={
-          k.hours.avgMinutes == null ? 'sem duração registrada' : `média ${Math.round(k.hours.avgMinutes)} min por check-in`
+          k.hours.avgMinutes == null
+            ? 'sem duração registrada'
+            : `${Math.round(k.hours.avgMinutes)} min por check-in, em média`
         }
         series={k.hours.series}
         format={(v) => `${Math.round(v)} min`}

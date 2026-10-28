@@ -86,9 +86,9 @@ export interface SparkPoint {
 }
 
 export interface Kpis {
-  checkins: { value: number; delta: number; series: SparkPoint[] }
-  participation: { pct: number; avg7: number; series: SparkPoint[] }
-  perAthlete: { value: number; active: number; series: SparkPoint[] }
+  checkins: { value: number; previous: number; series: SparkPoint[] }
+  participation: { athletes: number; members: number; pct: number; avg7: number; series: SparkPoint[] }
+  perAthlete: { value: number; workouts: number; members: number; active: number; series: SparkPoint[] }
   hours: { hours: number; avgMinutes: number | null; series: SparkPoint[] }
 }
 
@@ -117,16 +117,20 @@ export function dashboardKpis(ins: Insights, ref: string): Kpis {
   return {
     checkins: {
       value: today,
-      delta: today - yesterday,
+      previous: yesterday,
       series: window.map((date) => ({ date, value: at(date)?.workouts ?? 0 })),
     },
     participation: {
+      athletes: at(ref)?.athletes ?? 0,
+      members,
       pct: pct(at(ref)?.athletes ?? 0, members),
       avg7: week.reduce((t, v) => t + v, 0) / week.length,
       series: window.map((date) => ({ date, value: pct(at(date)?.athletes ?? 0, members) })),
     },
     perAthlete: {
       value: members > 0 ? ins.totals.workouts / members : 0,
+      workouts: ins.totals.workouts,
+      members,
       active: ins.totals.athletes_active,
       series: cumulative,
     },
@@ -148,9 +152,12 @@ export function formatDecimal(n: number): string {
   return n.toLocaleString(LOCALE, { minimumFractionDigits: 1, maximumFractionDigits: 1 })
 }
 
-export function formatDelta(n: number): string {
-  // Sinal de menos tipográfico, não hífen.
-  return n > 0 ? `+${n}` : n < 0 ? `−${Math.abs(n)}` : '0'
+/** Comparação em palavras: "2 a menos que ontem (24)", "igual a ontem". */
+export function compareText(value: number, previous: number, isToday = true): string {
+  const diff = value - previous
+  if (diff === 0) return isToday ? 'igual a ontem' : 'igual ao dia anterior'
+  const than = isToday ? 'que ontem' : 'que o dia anterior'
+  return `${Math.abs(diff)} a ${diff > 0 ? 'mais' : 'menos'} ${than} (${previous})`
 }
 
 export function hourLabel(h: number): string {

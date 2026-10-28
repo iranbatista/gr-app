@@ -3,11 +3,11 @@ import { ana, bruno, caio, insights } from '../test/fixtures'
 import {
   addDays,
   challengeProgress,
+  compareText,
   dashboardKpis,
   durationRows,
   durationText,
   emojiSize,
-  formatDelta,
   formatHours,
   joinNames,
   lastDays,
@@ -79,7 +79,7 @@ describe('dashboardKpis', () => {
 
   it('compares today with yesterday', () => {
     expect(k.checkins.value).toBe(10)
-    expect(k.checkins.delta).toBe(4)
+    expect(k.checkins.previous).toBe(6)
     expect(k.checkins.series).toHaveLength(14)
     expect(k.checkins.series.at(-1)).toEqual({ date: '2026-10-27', value: 10 })
   })
@@ -87,18 +87,18 @@ describe('dashboardKpis', () => {
   it('treats days without data as zero', () => {
     const z = dashboardKpis(insights, '2026-10-29')
     expect(z.checkins.value).toBe(0)
-    expect(z.checkins.delta).toBe(0)
+    expect(z.checkins.previous).toBe(0)
     expect(z.checkins.series.at(-1)).toEqual({ date: '2026-10-29', value: 0 })
   })
 
   it('derives participation today and the 7-day average', () => {
-    expect(k.participation.pct).toBe(80)
+    expect(k.participation).toMatchObject({ athletes: 8, members: 10, pct: 80 })
     // 21–25: 30%; 26: 50%; 27: 80%
     expect(k.participation.avg7).toBeCloseTo((5 * 30 + 50 + 80) / 7)
   })
 
   it('averages workouts per member with a cumulative series', () => {
-    expect(k.perAthlete.value).toBe(12)
+    expect(k.perAthlete).toMatchObject({ value: 12, workouts: 120, members: 10 })
     expect(k.perAthlete.active).toBe(8)
     // até 27/10: 25×4 + 6 + 10 = 116 check-ins na série diária
     expect(k.perAthlete.series.at(-1)?.value).toBeCloseTo(11.6)
@@ -128,10 +128,17 @@ describe('formatters', () => {
     expect(formatHours(1234)).toBe('1.234 h')
     expect(formatHours(2.25)).toBe('2,3 h')
     expect(formatHours(0)).toBe('0 h')
-    expect(formatDelta(4)).toBe('+4')
-    expect(formatDelta(-2)).toBe('−2')
-    expect(formatDelta(0)).toBe('0')
     expect(slotLabel(1, 18)).toBe('Ter 18h')
+  })
+})
+
+describe('compareText', () => {
+  it('compares with yesterday in words', () => {
+    expect(compareText(22, 24)).toBe('2 a menos que ontem (24)')
+    expect(compareText(22, 19)).toBe('3 a mais que ontem (19)')
+    expect(compareText(5, 5)).toBe('igual a ontem')
+    expect(compareText(6, 4, false)).toBe('2 a mais que o dia anterior (4)')
+    expect(compareText(4, 4, false)).toBe('igual ao dia anterior')
   })
 })
 
