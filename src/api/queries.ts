@@ -48,26 +48,39 @@ export function useChallenge(id: number, enabled = true) {
   })
 }
 
-export function useRankings(id: number) {
+export function useRankings(id: number, enabled = true) {
   return useQuery({
     queryKey: ['rankings', id],
     queryFn: () => apiGet<RankingEntry[]>(`/challenges/${id}/rankings`),
+    enabled,
   })
 }
 
-export function useStats(id: number) {
+// `until` (YYYY-MM-DD) corta os check-ins no dia local; a API ecoa o corte na resposta.
+const cutKey = (until?: string) => (until ? [{ until }] : [])
+
+export function useStats(id: number, until?: string, enabled = true) {
   return useQuery({
-    queryKey: ['stats', id],
-    queryFn: () => apiGet<Stats>(`/challenges/${id}/stats`),
+    queryKey: ['stats', id, ...cutKey(until)],
+    queryFn: () => apiGet<Stats>(`/challenges/${id}/stats`, { until }),
+    enabled,
   })
 }
 
 // Agregados do dashboard. Antes do deploy da API responde 404 genérico (tratado na aba).
-export function useInsights(id: number) {
+export function useInsights(id: number, until?: string, enabled = true) {
   return useQuery({
-    queryKey: ['insights', id],
-    queryFn: () => apiGet<Insights>(`/challenges/${id}/insights`),
+    queryKey: ['insights', id, ...cutKey(until)],
+    queryFn: () => apiGet<Insights>(`/challenges/${id}/insights`, { until }),
+    enabled,
   })
+}
+
+/** A API aplicou o corte? Ausência da chave `until` = API antiga, que ignora o parâmetro. */
+export function honorsUntil(data: { until?: string | null } | undefined, until?: string): boolean | undefined {
+  if (!data) return undefined
+  if (!('until' in data)) return false
+  return until ? data.until === until : true
 }
 
 export function useWorkouts(id: number, filters: WorkoutFilters) {

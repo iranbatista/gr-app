@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { nextOffset, workoutParams } from './queries'
+import { honorsUntil, nextOffset, workoutParams } from './queries'
 
 describe('workoutParams', () => {
   it('maps local-day filters to UTC bounds', () => {
@@ -30,5 +30,16 @@ describe('nextOffset', () => {
 
   it('returns undefined on last page', () => {
     expect(nextOffset({ items: new Array(5), total: 35, limit: 30, offset: 30 })).toBeUndefined()
+  })
+})
+
+describe('honorsUntil', () => {
+  it('detects whether the API applied the cut-off', () => {
+    expect(honorsUntil(undefined, '2026-10-27')).toBeUndefined()
+    expect(honorsUntil({}, '2026-10-27')).toBe(false)
+    expect(honorsUntil({}, undefined)).toBe(false)
+    expect(honorsUntil({ until: null }, undefined)).toBe(true)
+    expect(honorsUntil({ until: '2026-10-27' }, '2026-10-27')).toBe(true)
+    expect(honorsUntil({ until: null }, '2026-10-27')).toBe(false)
   })
 })
