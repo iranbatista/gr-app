@@ -4,6 +4,7 @@ import { insights } from '../test/fixtures'
 import {
   alignment,
   availableDays,
+  buildSummary,
   challengeSpan,
   compareAthletes,
   cutoffDate,
@@ -16,14 +17,17 @@ import {
   formatDeltaPct,
   formatDeltaPp,
   kpiSide,
+  movingAverage,
   paceSeries,
   pairSlots,
   peakHour,
   periodPairs,
   previousOf,
+  sameWinners,
   shortLabels,
   sortByDelta,
 } from './compare'
+import type { AthleteComparison, KpiSide } from './compare'
 
 const now = new Date('2026-10-27T12:00:00')
 
@@ -173,9 +177,9 @@ describe('paceSeries', () => {
     const b = ins({ members_total: 2, daily: [{ date: '2026-09-04', workouts: 2, athletes: 2, minutes: 0 }] })
     const rows = paceSeries({ ins: a, start: '2026-10-03', days: 3 }, { ins: b, start: '2026-09-04', days: 2 })
     expect(rows).toEqual([
-      { day: 1, aCum: 3, bCum: 2, aPct: 50, bPct: 100 },
-      { day: 2, aCum: 3, bCum: 2, aPct: 0, bPct: 0 },
-      { day: 3, aCum: 4, bCum: undefined, aPct: 25, bPct: undefined },
+      { day: 1, aCum: 3, bCum: 2, diff: 1, aPct: 50, bPct: 100, aAvg: 50, bAvg: 100 },
+      { day: 2, aCum: 3, bCum: 2, diff: 1, aPct: 0, bPct: 0, aAvg: 25, bAvg: 50 },
+      { day: 3, aCum: 4, bCum: undefined, diff: undefined, aPct: 25, bPct: undefined, aAvg: 25, bAvg: undefined },
     ])
   })
 })
@@ -299,5 +303,100 @@ describe('athletes', () => {
     const c = compareAthletes({ stats: statsOf([noDays as never]), rankings: [] }, { stats: statsOf([]), rankings: [] }, 'dia')
     expect(c.rows[0]).toMatchObject({ name: 'Gil', picture: null, status: 'novo' })
     expect(c.rows[0].a).toEqual({ workouts: 2, activeDays: null, position: 1 })
+  })
+})
+
+describe('movingAverage', () => {
+  it('averages the trailing window, using the available days at the start', () => {
+    expect(movingAverage([10, 20, 30, 40], 3)).toEqual([10, 15, 20, 30])
+    expect(movingAverage([7, 7, 7, 7, 7, 7, 7, 14], 7)).toEqual([7, 7, 7, 7, 7, 7, 7, 8])
+  })
+
+  it('keeps gaps (undefined) as gaps and skips them in the window', () => {
+    expect(movingAverage([10, undefined, 30], 2)).toEqual([10, undefined, 30])
+    expect(movingAverage([10, 20, undefined, undefined], 7)).toEqual([10, 15, undefined, undefined])
+    expect(movingAverage([], 7)).toEqual([])
+  })
+})
+
+describe('sameWinners', () => {
+  const acc = (id: number | null) => ({ id, full_name: 'X', profile_picture_url: null })
+  it('compares winner sets regardless of order', () => {
+    expect(sameWinners([acc(1)], [acc(1)])).toBe(true)
+    expect(sameWinners([acc(1), acc(2)], [acc(2), acc(1)])).toBe(true)
+    expect(sameWinners([acc(1)], [acc(2)])).toBe(false)
+    expect(sameWinners([acc(1), acc(2)], [acc(1)])).toBe(false)
+  })
+
+  it('never matches accounts without id', () => {
+    expect(sameWinners([acc(null)], [acc(null)])).toBe(false)
+    expect(sameWinners([], [])).toBe(false)
+  })
+})
+
+describe('buildSummary', () => {
+  const side = (over: Partial<KpiSide>): KpiSide => ({
+    workouts: 100,
+    active: 40,
+    members: 48,
+    participation: 45,
+    perAthlete: 2,
+    hours: 10,
+    avgMinutes: 40,
+    ...over,
+  })
+  const vitor = {
+    id: 1,
+    name: 'Vitor Rett da Silva',
+    picture: null,
+    status: 'both' as const,
+    a: { workouts: 23, activeDays: 13, position: 4 },
+    b: { workouts: 9, activeDays: 9, position: 15 },
+    delta: 14,
+    trend: 'up' as const,
+  }
+  const athletes: AthleteComparison = {
+    rows: [vitor],
+    summary: { both: 40, novo: 8, saiu: 7 },
+    movers: { up: [vitor], down: [] },
+  }
+  const base = { names: { a: 'Outubro', b: 'Setembro' }, mode: 'dia' as const, n: 25 }
+  const text = (s: ReturnType<typeof buildSummary>) => s.map((x) => x.parts.map((p) => p.text).join(''))
+  const strong = (s: ReturnType<typeof buildSummary>) => s.map((x) => x.parts.filter((p) => p.strong).map((p) => p.text))
+
+  it('writes pace, participation, roster and top mover sentences', () => {
+    const s = buildSummary({
+      ...base,
+      kpis: { a: side({ workouts: 571, participation: 45.2 }), b: side({ workouts: 606, participation: 48.1 }) },
+      athletes,
+    })
+    expect(s.map((x) => x.id)).toEqual(['pace', 'participation', 'roster', 'mover'])
+    expect(text(s)).toEqual([
+      'Outubro está 6% atrás de Setembro no mesmo ponto (571 × 606 check-ins até o dia 25)',
+      'Participação diária 3 p.p. menor (45% × 48%)',
+      '8 atletas novos e 7 saíram; 40 estão nos dois',
+      'Vitor Rett foi quem mais evoluiu (+14 check-ins)',
+    ])
+    expect(strong(s)).toEqual([['6% atrás'], ['3 p.p. menor'], ['8 atletas novos'], ['Vitor Rett']])
+  })
+
+  it('says ahead, tied and the whole challenge in total mode', () => {
+    const ahead = buildSummary({ ...base, mode: 'total', kpis: { a: side({ workouts: 700 }), b: side({ workouts: 571 }) }, athletes: null })
+    expect(text(ahead)[0]).toBe('Outubro está 23% à frente de Setembro no desafio inteiro (700 × 571 check-ins)')
+    const tied = buildSummary({ ...base, kpis: { a: side({ workouts: 101 }), b: side({ workouts: 100 }) }, athletes: null })
+    expect(text(tied)[0]).toBe('Outubro está empatado com Setembro no mesmo ponto (101 × 100 check-ins até o dia 25)')
+    expect(text(tied)[1]).toBe('Participação diária igual (45% × 45%)')
+  })
+
+  it('uses singulars and skips what is missing', () => {
+    const one: AthleteComparison = { rows: [], summary: { both: 1, novo: 1, saiu: 1 }, movers: { up: [], down: [] } }
+    const s = buildSummary({ ...base, kpis: null, athletes: one })
+    expect(text(s)).toEqual(['1 atleta novo e 1 saiu; 1 está nos dois'])
+    const none: AthleteComparison = { rows: [], summary: { both: 3, novo: 0, saiu: 2 }, movers: { up: [], down: [] } }
+    expect(text(buildSummary({ ...base, kpis: null, athletes: none }))).toEqual(['Nenhum atleta novo e 2 saíram; 3 estão nos dois'])
+    expect(buildSummary({ ...base, kpis: null, athletes: null })).toEqual([])
+    // Sem base (B zerado): sem frase de ritmo.
+    const zero = buildSummary({ ...base, kpis: { a: side({ workouts: 5 }), b: side({ workouts: 0 }) }, athletes: null })
+    expect(zero.map((x) => x.id)).toEqual(['participation'])
   })
 })

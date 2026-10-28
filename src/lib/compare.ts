@@ -1,7 +1,7 @@
-import type { Challenge, DailyPoint, Insights, Periods, RankingEntry, Stats, WeekdayDuration } from '../api/types'
+import type { Account, Challenge, DailyPoint, Insights, Periods, RankingEntry, Stats, WeekdayDuration } from '../api/types'
 import { PERIODS, WEEKDAYS, addDays, calendarKey, daysBetween, todayKey } from './dashboard'
 import { parseDate } from './format'
-import { isActive } from './visual'
+import { isActive, shortName } from './visual'
 
 export type CompareMode = 'dia' | 'total'
 
@@ -168,9 +168,25 @@ export interface PacePoint {
   /** Check-ins acumulados até o dia (undefined fora do período do lado). */
   aCum?: number
   bCum?: number
+  /** Diferença acumulada A − B (só nos dias que existem nos dois). */
+  diff?: number
   /** % de membros com check-in no dia. */
   aPct?: number
   bPct?: number
+  /** Média móvel de 7 dias da participação. */
+  aAvg?: number
+  bAvg?: number
+}
+
+export const AVG_DAYS = 7
+
+/** Média móvel dos últimos k pontos (menos no começo); buraco continua buraco. */
+export function movingAverage(series: (number | undefined)[], k: number): (number | undefined)[] {
+  return series.map((v, i) => {
+    if (v == null) return undefined
+    const win = series.slice(Math.max(0, i - k + 1), i + 1).filter((x): x is number => x != null)
+    return win.reduce((t, x) => t + x, 0) / win.length
+  })
 }
 
 interface PaceSide {
@@ -196,12 +212,17 @@ export function paceSeries(a: PaceSide, b: PaceSide): PacePoint[] {
   const sa = sideSeries(a)
   const sb = sideSeries(b)
   const n = Math.max(sa.length, sb.length)
+  const aAvg = movingAverage(sa.map((x) => x.pct), AVG_DAYS)
+  const bAvg = movingAverage(sb.map((x) => x.pct), AVG_DAYS)
   return Array.from({ length: n }, (_, i) => ({
     day: i + 1,
     aCum: sa[i]?.cum,
     bCum: sb[i]?.cum,
+    diff: sa[i] && sb[i] ? sa[i].cum - sb[i].cum : undefined,
     aPct: sa[i]?.pct,
     bPct: sb[i]?.pct,
+    aAvg: aAvg[i],
+    bAvg: bAvg[i],
   }))
 }
 
@@ -263,6 +284,14 @@ export function pairSlots<T>(a: (T | null)[], b: (T | null)[]): { index: number;
     a: a[index] ?? null,
     b: b[index] ?? null,
   })).filter((r) => r.a || r.b)
+}
+
+/** Mesmos vencedores dos dois lados (conjunto de ids, ordem não importa; empate e dupla incluídos). */
+export function sameWinners(a: Account[], b: Account[]): boolean {
+  if (a.length === 0 || a.length !== b.length) return false
+  if (a.some((x) => x.id == null) || b.some((x) => x.id == null)) return false
+  const ids = new Set(a.map((x) => x.id))
+  return b.every((x) => ids.has(x.id))
 }
 
 // ---------- atletas ----------
@@ -399,4 +428,94 @@ export function sortDelta(r: AthleteRow): number {
 export function sortByDelta(rows: AthleteRow[], dir: 'asc' | 'desc'): AthleteRow[] {
   const sign = dir === 'desc' ? -1 : 1
   return [...rows].sort((x, y) => sign * (sortDelta(x) - sortDelta(y)) || byName(x, y))
+}
+
+// ---------- resumo ----------
+
+export interface SummaryPart {
+  text: string
+  strong?: boolean
+}
+
+export interface SummaryItem {
+  id: 'pace' | 'participation' | 'roster' | 'mover'
+  /** Direção da frase para o ícone: A melhor, pior ou igual. */
+  tone: 'up' | 'down' | 'same' | 'info'
+  parts: SummaryPart[]
+}
+
+interface SummaryInput {
+  names: { a: string; b: string }
+  mode: CompareMode
+  n: number | null
+  kpis: { a: KpiSide; b: KpiSide } | null
+  athletes: AthleteComparison | null
+}
+
+/** Abaixo disso a diferença de check-ins conta como empate. */
+const TIE_PCT = 2
+
+const count = (n: number, one: string, many: string) => `${n} ${n === 1 ? one : many}`
+
+/** Veredito em frases curtas; cada frase some quando falta o dado dela. */
+export function buildSummary({ names, mode, n, kpis, athletes }: SummaryInput): SummaryItem[] {
+  const out: SummaryItem[] = []
+  if (kpis) {
+    const { a, b } = kpis
+    const d = deltaPct(a.workouts, b.workouts)
+    if (d != null) {
+      const where =
+        mode === 'dia' && n != null
+          ? `no mesmo ponto (${a.workouts} × ${b.workouts} check-ins até o dia ${n})`
+          : `no desafio inteiro (${a.workouts} × ${b.workouts} check-ins)`
+      const tied = Math.abs(d) < TIE_PCT
+      const pct = `${Math.round(Math.abs(d))}%`
+      out.push({
+        id: 'pace',
+        tone: tied ? 'same' : d > 0 ? 'up' : 'down',
+        parts: tied
+          ? [{ text: `${names.a} está ` }, { text: 'empatado', strong: true }, { text: ` com ${names.b} ${where}` }]
+          : [
+              { text: `${names.a} está ` },
+              { text: `${pct} ${d > 0 ? 'à frente' : 'atrás'}`, strong: true },
+              { text: ` de ${names.b} ${where}` },
+            ],
+      })
+    }
+    const pa = Math.round(a.participation)
+    const pb = Math.round(b.participation)
+    const pp = Math.round(a.participation - b.participation)
+    out.push({
+      id: 'participation',
+      tone: pp === 0 ? 'same' : pp > 0 ? 'up' : 'down',
+      parts: [
+        { text: 'Participação diária ' },
+        { text: pp === 0 ? 'igual' : `${Math.abs(pp)} p.p. ${pp > 0 ? 'maior' : 'menor'}`, strong: true },
+        { text: ` (${pa}% × ${pb}%)` },
+      ],
+    })
+  }
+  if (athletes) {
+    const { both, novo, saiu } = athletes.summary
+    out.push({
+      id: 'roster',
+      tone: 'info',
+      parts: [
+        { text: novo === 0 ? 'Nenhum atleta novo' : count(novo, 'atleta novo', 'atletas novos'), strong: true },
+        { text: ` e ${count(saiu, 'saiu', 'saíram')}; ${count(both, 'está nos dois', 'estão nos dois')}` },
+      ],
+    })
+    const top = athletes.movers.up[0]
+    if (top) {
+      out.push({
+        id: 'mover',
+        tone: 'up',
+        parts: [
+          { text: shortName(top.name), strong: true },
+          { text: ` foi quem mais evoluiu (${formatSigned(top.delta!)} check-ins)` },
+        ],
+      })
+    }
+  }
+  return out
 }
