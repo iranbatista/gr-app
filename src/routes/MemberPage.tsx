@@ -132,25 +132,27 @@ function MemberView({ challengeId, memberId }: { challengeId: number; memberId: 
         <StatTile label="Distância" value={formatDistance(totals?.distance ?? 0)} />
       </div>
 
-      <section className="flex flex-col gap-4">
-        <h2 className={sectionTitle}>Check-ins por dia</h2>
-        {all.isPending ? (
-          <div aria-hidden className="surface h-40 animate-pulse" />
-        ) : all.isError ? (
-          <ErrorState error={all.error} onRetry={() => all.refetch()} />
-        ) : (
-          <DayHeatmap data={days!} />
-        )}
-      </section>
-
-      <section className="flex flex-col gap-4">
-        <h2 className={sectionTitle}>Check-ins por semana</h2>
-        {all.isPending ? (
-          <div aria-hidden className="surface h-64 animate-pulse" />
-        ) : all.isError ? null : (
-          <WeeklyChart data={days!} />
-        )}
-      </section>
+      {/* Dia e semana lado a lado no desktop, empilhados no celular. */}
+      <div className="grid gap-5 lg:grid-cols-2">
+        <section className="flex flex-col gap-4">
+          <h2 className={sectionTitle}>Check-ins por dia</h2>
+          {all.isPending ? (
+            <div aria-hidden className="surface h-64 animate-pulse" />
+          ) : all.isError ? (
+            <ErrorState error={all.error} onRetry={() => all.refetch()} />
+          ) : (
+            <DayHeatmap data={days!} />
+          )}
+        </section>
+        <section className="flex flex-col gap-4">
+          <h2 className={sectionTitle}>Check-ins por semana</h2>
+          {all.isPending ? (
+            <div aria-hidden className="surface h-64 animate-pulse" />
+          ) : all.isError ? null : (
+            <WeeklyChart data={days!} />
+          )}
+        </section>
+      </div>
 
       <section className="flex flex-col gap-4">
         <h2 className={sectionTitle}>Histórico</h2>

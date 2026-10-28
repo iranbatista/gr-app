@@ -33,14 +33,17 @@ export function StatsTab({ challengeId }: { challengeId: number }) {
         <StatTile label="Check-ins" value={s.total_workouts} />
         <StatTile label="Membros ativos" value={s.members} />
       </div>
-      <section className="flex flex-col gap-4">
-        <h2 className={sectionTitle}>Check-ins por dia</h2>
-        <DayHeatmap data={s.by_day} />
-      </section>
-      <section className="flex flex-col gap-4">
-        <h2 className={sectionTitle}>Check-ins por semana</h2>
-        <WeeklyChart data={s.by_day} />
-      </section>
+      {/* Dia e semana lado a lado no desktop, empilhados no celular. */}
+      <div className="grid gap-5 lg:grid-cols-2">
+        <section className="flex flex-col gap-4">
+          <h2 className={sectionTitle}>Check-ins por dia</h2>
+          <DayHeatmap data={s.by_day} />
+        </section>
+        <section className="flex flex-col gap-4">
+          <h2 className={sectionTitle}>Check-ins por semana</h2>
+          <WeeklyChart data={s.by_day} />
+        </section>
+      </div>
       <section className="flex flex-col gap-4">
         <h2 className={sectionTitle}>Check-ins por membro</h2>
         <MemberChart data={s.by_member} />

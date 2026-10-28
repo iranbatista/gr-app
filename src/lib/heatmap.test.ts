@@ -24,7 +24,7 @@ describe('buildHeatmap', () => {
     expect(weeks[1][1]).toMatchObject({ date: '2026-10-27', count: 1, inRange: true })
   })
 
-  it('scales levels 1–4 against the max', () => {
+  it('levels non-zero days by quantile', () => {
     const weeks = buildHeatmap([
       { date: '2026-10-19', count: 1 },
       { date: '2026-10-20', count: 4 },
@@ -32,6 +32,21 @@ describe('buildHeatmap', () => {
       { date: '2026-10-22', count: 8 },
     ])
     expect(weeks[0].slice(0, 4).map((c) => c.level)).toEqual([1, 2, 3, 4])
+  })
+
+  it('keeps contrast when a few days are outliers', () => {
+    // com escala pelo máximo, 1–3 cairiam todos no nível 1 por causa do 100
+    const days = [1, 1, 2, 2, 3, 3, 100].map((count, i) => ({ date: `2026-10-${19 + i}`, count }))
+    expect(buildHeatmap(days)[0].map((c) => c.level)).toEqual([1, 1, 2, 2, 3, 3, 4])
+  })
+
+  it('uses level 0 only for zero days', () => {
+    const weeks = buildHeatmap([
+      { date: '2026-10-19', count: 0 },
+      { date: '2026-10-20', count: 1 },
+    ])
+    expect(weeks[0][0].level).toBe(0)
+    expect(weeks[0][1].level).toBeGreaterThan(0)
   })
 })
 

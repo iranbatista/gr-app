@@ -1,85 +1,94 @@
 import type { DayCount } from '../api/types'
-import { formatShortDate } from '../lib/format'
+import { formatShortDate, localDayKey } from '../lib/format'
 import { type HeatLevel, buildHeatmap, monthLabels } from '../lib/heatmap'
-
-// Escala de 5 níveis: bege vazio até a marca cheia, que no topo puxa para o coral.
-const LEVEL_BG: Record<HeatLevel, string> = {
-  0: 'var(--wash)',
-  1: 'color-mix(in srgb, var(--brand-from) 25%, transparent)',
-  2: 'color-mix(in srgb, var(--brand-from) 50%, transparent)',
-  3: 'color-mix(in srgb, var(--brand-from) 80%, transparent)',
-  4: 'linear-gradient(135deg, var(--brand-from), var(--brand-to))',
-}
+import { Tooltip } from './ui/Tooltip'
 
 // Só segunda, quarta e sexta ganham rótulo, como no GitHub.
 const WEEKDAYS = ['Seg', '', 'Qua', '', 'Sex', '', '']
+const SHORT_WEEKDAY = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb']
 
-// Célula cresce no desktop: com poucas semanas o mapa não fica perdido no card.
-const CELL = 'var(--cell)'
-const GAP = 'var(--cell-gap)'
+function describe(date: string, count: number): string {
+  const [y, m, d] = date.split('-').map(Number)
+  const weekday = SHORT_WEEKDAY[new Date(y, m - 1, d).getDay()]
+  const total = count === 0 ? 'Nenhum check-in' : `${count} ${count === 1 ? 'check-in' : 'check-ins'}`
+  return `${weekday}, ${formatShortDate(date)} · ${total}`
+}
 
-function Square({ level }: { level: HeatLevel }) {
+function Square({ level, className = '' }: { level: HeatLevel; className?: string }) {
   return (
     <span
-      className="block rounded-[25%] border border-[var(--hairline)]"
-      style={{ width: CELL, height: CELL, background: LEVEL_BG[level] }}
+      className={`block aspect-square w-full rounded-[3px] ${level === 0 ? 'border border-[var(--hairline)]' : ''} ${className}`}
+      style={{ background: `var(--heat-${level})` }}
     />
   )
 }
 
 export function DayHeatmap({ data }: { data: DayCount[] }) {
   const weeks = buildHeatmap(data)
-  const months = new Map(monthLabels(weeks).map((m) => [m.week, m.label]))
-  const columns = `repeat(${weeks.length}, ${CELL})`
+  const months = monthLabels(weeks)
+  const today = localDayKey(new Date().toISOString())
 
   return (
-    <div className="surface flex flex-col gap-4 p-5 [--cell-gap:0.25rem] [--cell:1rem] sm:[--cell-gap:0.375rem] sm:[--cell:1.5rem]">
-      {/* Rola dentro da superfície em telas estreitas; a página não estoura. */}
+    <div className="surface flex flex-1 flex-col justify-between gap-4 p-5">
+      {/* Rola dentro do card se houver semanas demais; a página não estoura. */}
       <div className="overflow-x-auto pb-1">
-        <div className="mx-auto flex w-max gap-2">
-          <div className="grid pt-[calc(0.875rem+0.25rem)]" style={{ gridTemplateRows: `repeat(7, ${CELL})`, gap: GAP }}>
-            {WEEKDAYS.map((d, i) => (
-              <span key={i} className="flex items-center pr-1 text-[0.625rem] text-[var(--ink-muted)]">
-                {d}
-              </span>
-            ))}
-          </div>
-          <div className="flex flex-col gap-1">
-            <div className="grid h-[0.875rem]" style={{ gridTemplateColumns: columns, columnGap: GAP }}>
-              {weeks.map((_, i) => (
-                <span key={i} className="overflow-visible whitespace-nowrap text-[0.625rem] leading-[0.875rem] text-[var(--ink-muted)]">
-                  {months.get(i) ?? ''}
-                </span>
-              ))}
-            </div>
-            <div
-              className="grid grid-flow-col"
-              style={{ gridTemplateColumns: columns, gridTemplateRows: `repeat(7, ${CELL})`, gap: GAP }}
+        <div
+          className="mx-auto grid gap-[3px]"
+          style={{
+            // Células crescem até 2.5rem para preencher o card; abaixo de 0.875rem rola.
+            gridTemplateColumns: `auto repeat(${weeks.length}, minmax(0.875rem, 2.5rem))`,
+            gridTemplateRows: 'auto',
+            justifyContent: 'center',
+          }}
+        >
+          {months.map((m) => (
+            <span
+              key={m.week}
+              className="whitespace-nowrap pb-1 text-[0.6875rem] text-[var(--ink-muted)]"
+              style={{ gridColumn: m.week + 2, gridRow: 1 }}
             >
-              {weeks.flat().map((c) =>
-                c.inRange ? (
+              {m.label}
+            </span>
+          ))}
+          {WEEKDAYS.map((d, i) => (
+            <span
+              key={i}
+              className="flex items-center pr-2 text-[0.6875rem] text-[var(--ink-muted)]"
+              style={{ gridColumn: 1, gridRow: i + 2 }}
+            >
+              {d}
+            </span>
+          ))}
+          {weeks.map((week, w) =>
+            week.map((c, i) =>
+              c.inRange ? (
+                <Tooltip key={c.date} content={describe(c.date, c.count)}>
                   <span
-                    key={c.date}
                     role="img"
-                    title={`${formatShortDate(c.date)}: ${c.count} ${c.count === 1 ? 'check-in' : 'check-ins'}`}
-                    aria-label={`${formatShortDate(c.date)}: ${c.count} ${c.count === 1 ? 'check-in' : 'check-ins'}`}
+                    aria-label={describe(c.date, c.count)}
+                    style={{ gridColumn: w + 2, gridRow: i + 2 }}
                   >
-                    <Square level={c.level} />
+                    <Square
+                      level={c.level}
+                      className={
+                        c.date === today ? 'ring-2 ring-[var(--ink)] ring-offset-1 ring-offset-[var(--card)]' : ''
+                      }
+                    />
                   </span>
-                ) : (
-                  <span key={c.date} aria-hidden />
-                ),
-              )}
-            </div>
-          </div>
+                </Tooltip>
+              ) : null,
+            ),
+          )}
         </div>
       </div>
-      <div aria-hidden className="flex items-center justify-end gap-1.5 [--cell:0.75rem] text-[0.6875rem] text-[var(--ink-muted)]">
-        Menos
+      <div aria-hidden className="flex items-center justify-end gap-1 text-[0.6875rem] text-[var(--ink-muted)]">
+        <span className="mr-1">Menos</span>
         {([0, 1, 2, 3, 4] as const).map((l) => (
-          <Square key={l} level={l} />
+          <span key={l} className="w-3">
+            <Square level={l} />
+          </span>
         ))}
-        Mais
+        <span className="ml-1">Mais</span>
       </div>
     </div>
   )

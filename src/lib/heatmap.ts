@@ -28,9 +28,21 @@ function mondayOf(t: number): number {
   return t - ((new Date(t).getUTCDay() + 6) % 7) * DAY
 }
 
-function level(count: number, max: number): HeatLevel {
-  if (count <= 0 || max <= 0) return 0
-  return Math.min(4, Math.max(1, Math.ceil((count / max) * 4))) as HeatLevel
+// Limiares pelos quartis dos dias com check-in: poucos dias enormes não
+// achatam a escala inteira. Zero é sempre nível 0.
+function thresholds(counts: number[]): [number, number, number] {
+  const sorted = counts.filter((c) => c > 0).sort((a, b) => a - b)
+  if (sorted.length === 0) return [0, 0, 0]
+  const q = (p: number) => sorted[Math.floor(p * (sorted.length - 1))]
+  return [q(0.25), q(0.5), q(0.75)]
+}
+
+function level(count: number, [q1, q2, q3]: [number, number, number]): HeatLevel {
+  if (count <= 0) return 0
+  if (count <= q1) return 1
+  if (count <= q2) return 2
+  if (count <= q3) return 3
+  return 4
 }
 
 /** Semanas (segunda a domingo) × 7 dias, do primeiro ao último dia com dado. */
@@ -40,7 +52,7 @@ export function buildHeatmap(days: DayCount[]): HeatCell[][] {
   const times = days.map((d) => toTime(d.date))
   const first = Math.min(...times)
   const last = Math.max(...times)
-  const max = Math.max(...days.map((d) => d.count))
+  const limits = thresholds(days.map((d) => d.count))
 
   const weeks: HeatCell[][] = []
   for (let start = mondayOf(first); start <= last; start += 7 * DAY) {
@@ -49,7 +61,7 @@ export function buildHeatmap(days: DayCount[]): HeatCell[][] {
       const t = start + i * DAY
       const date = toKey(t)
       const count = counts.get(date) ?? 0
-      week.push({ date, count, level: level(count, max), inRange: t >= first && t <= last })
+      week.push({ date, count, level: level(count, limits), inRange: t >= first && t <= last })
     }
     weeks.push(week)
   }
