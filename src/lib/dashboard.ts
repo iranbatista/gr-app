@@ -27,7 +27,7 @@ export function todayKey(now: Date = new Date()): string {
 }
 
 // Datas do desafio chegam como dia de calendário (com ou sem meia-noite UTC).
-function calendarKey(iso: string): string {
+export function calendarKey(iso: string): string {
   return localDayKey(parseDate(iso).toISOString())
 }
 
