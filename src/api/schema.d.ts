@@ -257,6 +257,9 @@ export interface components {
             most_reactions?: components["schemas"]["Award"] | null;
             most_comments?: components["schemas"]["Award"] | null;
             most_reactions_given?: components["schemas"]["Award"] | null;
+            marathoner?: components["schemas"]["Award"] | null;
+            weekend?: components["schemas"]["Award"] | null;
+            dynamic_duo?: components["schemas"]["DuoAward"] | null;
         };
         /** Challenge */
         Challenge: {
@@ -314,6 +317,17 @@ export interface components {
             athletes: number;
             /** Minutes */
             minutes: number;
+        };
+        /** DuoAward */
+        DuoAward: {
+            /** Accounts */
+            accounts: components["schemas"]["Account"][];
+            /** Value */
+            value: number;
+            /** A To B */
+            a_to_b: number;
+            /** B To A */
+            b_to_a: number;
         };
         /** EmojiCount */
         EmojiCount: {

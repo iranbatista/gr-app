@@ -1,12 +1,26 @@
-import { Dumbbell, Flame, Heart, type LucideIcon, MessageCircle, Moon, Sparkles, Sunrise } from 'lucide-react'
+import {
+  ArrowLeftRight,
+  CalendarCheck,
+  Dumbbell,
+  Flame,
+  Handshake,
+  Heart,
+  type LucideIcon,
+  MessageCircle,
+  Moon,
+  Sparkles,
+  Sunrise,
+  Timer,
+} from 'lucide-react'
 import { useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
-import type { Account, EmojiCount, Insights, Streak, TopWorkout } from '../api/types'
+import type { Account, DuoAward, EmojiCount, Insights, Streak, TopWorkout } from '../api/types'
 import { emojiSize, joinNames, streakLeaders } from '../lib/dashboard'
 import { shortName } from '../lib/visual'
 import { Avatar } from './Avatar'
 import { ChartCard } from './ChartCard'
 import { Badge } from './ui/Badge'
+import { Tooltip } from './ui/Tooltip'
 import { CHECKIN_PARAM } from './WorkoutDetail'
 
 const MAX_FACES = 3
@@ -18,6 +32,14 @@ interface AwardItem {
   value: number
   unit: [string, string]
   accounts: Account[]
+  /** Valor já formatado, quando não é só o número (ex.: "49 h"). */
+  display?: string
+  duo?: DuoAward
+}
+
+/** Minutos em horas arredondadas; abaixo de 1 h fica em minutos. */
+export function formatMinutes(min: number) {
+  return min < 60 ? `${min} min` : `${Math.round(min / 60).toLocaleString('pt-BR')} h`
 }
 
 /** Prêmios na ordem do layout; os sem vencedor somem. */
@@ -26,13 +48,31 @@ function awardItems(ins: Insights): AwardItem[] {
   const a = ins.awards
   const single = (x: { account: Account; value: number } | null | undefined) =>
     x && x.value > 0 ? { value: x.value, accounts: [x.account] } : null
-  const all: (Omit<AwardItem, 'value' | 'accounts'> & { win: { value: number; accounts: Account[] } | null })[] = [
+  const duo = a.dynamic_duo && a.dynamic_duo.value > 0 && a.dynamic_duo.accounts.length === 2 ? a.dynamic_duo : null
+  const all: (Omit<AwardItem, 'value' | 'accounts' | 'display' | 'duo'> & {
+    win: { value: number; accounts: Account[]; display?: string; duo?: DuoAward } | null
+  })[] = [
     { id: 'longest', title: 'Maior sequência', Icon: Flame, unit: ['dia seguido (recorde)', 'dias seguidos (recorde)'], win: longest.accounts.length ? longest : null },
+    {
+      id: 'marathon',
+      title: 'Maratonista',
+      Icon: Timer,
+      unit: ['treinados no total', 'treinados no total'],
+      win: a.marathoner && a.marathoner.value > 0 ? { ...single(a.marathoner)!, display: formatMinutes(a.marathoner.value) } : null,
+    },
+    { id: 'weekend', title: 'Sem folga', Icon: CalendarCheck, unit: ['treino no fim de semana', 'treinos no fim de semana'], win: single(a.weekend) },
     { id: 'early', title: 'Madrugador', Icon: Sunrise, unit: ['treino antes das 7h', 'treinos antes das 7h'], win: single(a.early_bird) },
     { id: 'night', title: 'Coruja', Icon: Moon, unit: ['treino após 21h', 'treinos após 21h'], win: single(a.night_owl) },
     { id: 'reactions', title: 'Mais reações', Icon: Heart, unit: ['reação recebida', 'reações recebidas'], win: single(a.most_reactions) },
     { id: 'comments', title: 'Mais comentado', Icon: MessageCircle, unit: ['comentário', 'comentários'], win: single(a.most_comments) },
     { id: 'given', title: 'Mais engajado', Icon: Sparkles, unit: ['reação dada', 'reações dadas'], win: single(a.most_reactions_given) },
+    {
+      id: 'duo',
+      title: 'Dupla dinâmica',
+      Icon: Handshake,
+      unit: ['reação trocada', 'reações trocadas'],
+      win: duo ? { value: duo.value, accounts: duo.accounts, duo } : null,
+    },
   ]
   return all.flatMap(({ win, ...x }) => (win ? [{ ...x, ...win }] : []))
 }
@@ -95,10 +135,69 @@ function Winners({ accounts, challengeId }: { accounts: Account[]; challengeId: 
   )
 }
 
+const firstName = (a: Account) => (a.full_name ?? 'Sem nome').trim().split(/\s+/)[0]
+
+/** Dupla: dois rostos sobrepostos, cada um levando ao perfil, e os primeiros nomes. */
+function DuoWinners({ duo, challengeId }: { duo: DuoAward; challengeId: number }) {
+  const [a, b] = duo.accounts
+  const name = (x: Account) => {
+    const to = memberLink(challengeId, x)
+    return to ? (
+      <Link to={to} className="rounded-sm hover:underline">
+        {firstName(x)}
+      </Link>
+    ) : (
+      firstName(x)
+    )
+  }
+  return (
+    <div className="flex min-w-0 flex-col items-start gap-2 lg:flex-row lg:items-center">
+      <ul className="flex shrink-0 -space-x-2.5">
+        {duo.accounts.map((x, i) => {
+          const to = memberLink(challengeId, x)
+          const face = <Avatar url={x.profile_picture_url} name={x.full_name} size="sm" ring />
+          return (
+            <li key={x.id ?? i} className="relative transition-transform hover:z-10 hover:-translate-y-0.5">
+              {to ? (
+                <Link to={to} aria-label={x.full_name ?? 'Sem nome'} className="block rounded-full">
+                  {face}
+                </Link>
+              ) : (
+                face
+              )}
+            </li>
+          )
+        })}
+      </ul>
+      <span className="min-w-0 text-[0.8125rem] font-medium leading-snug text-[var(--ink)]">
+        {name(a)} e {name(b)}
+      </span>
+    </div>
+  )
+}
+
+function DuoDirections({ duo }: { duo: DuoAward }) {
+  const [a, b] = duo.accounts
+  const label = `${firstName(a)} → ${firstName(b)}: ${duo.a_to_b} · ${firstName(b)} → ${firstName(a)}: ${duo.b_to_a}`
+  return (
+    <Tooltip content={label}>
+      <span
+        tabIndex={0}
+        aria-label={label}
+        className="inline-flex items-center gap-1.5 self-start rounded-full text-xs font-medium tabular-nums text-[var(--ink-muted)]"
+      >
+        <span aria-hidden>{duo.a_to_b}</span>
+        <ArrowLeftRight aria-hidden size={12} strokeWidth={2} />
+        <span aria-hidden>{duo.b_to_a}</span>
+      </span>
+    </Tooltip>
+  )
+}
+
 function AwardCard({ item, challengeId }: { item: AwardItem; challengeId: number }) {
   const unit = item.value === 1 ? item.unit[0] : item.unit[1]
   return (
-    <li aria-label={`${item.title}: ${item.value} ${unit}`} className="surface flex min-w-0 flex-col gap-4 p-4 sm:p-5">
+    <li aria-label={`${item.title}: ${item.display ?? item.value} ${unit}`} className="surface flex min-w-0 flex-col gap-4 p-4 sm:p-5">
       <div className="flex flex-col items-start gap-3 lg:flex-row lg:items-center">
         <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[var(--tint)] text-[var(--brand-ink)]">
           <item.Icon size={16} strokeWidth={1.75} />
@@ -107,12 +206,17 @@ function AwardCard({ item, challengeId }: { item: AwardItem; challengeId: number
       </div>
       <div className="flex flex-col gap-1">
         <span className="font-heading text-[2rem] font-semibold leading-none tracking-tight text-[var(--ink)] tabular-nums">
-          {item.value.toLocaleString('pt-BR')}
+          {item.display ?? item.value.toLocaleString('pt-BR')}
         </span>
         <span className="text-[0.8125rem] leading-snug text-[var(--ink-muted)]">{unit}</span>
+        {item.duo && <DuoDirections duo={item.duo} />}
       </div>
       <div className="mt-auto">
-        <Winners accounts={item.accounts} challengeId={challengeId} />
+        {item.duo ? (
+          <DuoWinners duo={item.duo} challengeId={challengeId} />
+        ) : (
+          <Winners accounts={item.accounts} challengeId={challengeId} />
+        )}
       </div>
     </li>
   )
@@ -123,7 +227,7 @@ export function AwardsGrid({ insights, challengeId }: { insights: Insights; chal
   const items = awardItems(insights)
   if (items.length === 0) return null
   return (
-    <ul aria-label="Prêmios" className="grid grid-cols-2 gap-4 lg:grid-cols-3">
+    <ul aria-label="Prêmios" className="grid auto-rows-fr grid-cols-2 gap-4 lg:grid-cols-3">
       {items.map((item) => (
         <AwardCard key={item.id} item={item} challengeId={challengeId} />
       ))}

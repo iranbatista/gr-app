@@ -163,6 +163,9 @@ export const insights: Insights = {
     most_reactions: { account: bruno, value: 381 },
     most_comments: { account: ana, value: 14 },
     most_reactions_given: { account: bruno, value: 77 },
+    marathoner: { account: caio, value: 2941 },
+    weekend: { account: ana, value: 11 },
+    dynamic_duo: { accounts: [ana, bruno], value: 23, a_to_b: 11, b_to_a: 12 },
   },
   top_workouts: [
     {

@@ -315,13 +315,13 @@ export function StreaksSkeleton() {
   )
 }
 
-/** Seis prêmios iguais, os três check-ins em destaque e a faixa de emojis. */
+/** Nove prêmios iguais, os três check-ins em destaque e a faixa de emojis. */
 export function HighlightsSkeleton() {
   return (
     <SkeletonGroup label="Carregando destaques" className="flex flex-col gap-5">
       <SectionHeadSkeleton />
-      <div className="grid grid-cols-2 gap-4 lg:grid-cols-3">
-        {Array.from({ length: 6 }, (_, i) => (
+      <div className="grid auto-rows-fr grid-cols-2 gap-4 lg:grid-cols-3">
+        {Array.from({ length: 9 }, (_, i) => (
           <AwardSkeleton key={i} />
         ))}
       </div>

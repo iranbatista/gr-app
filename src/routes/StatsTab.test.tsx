@@ -2,7 +2,7 @@ import { screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { http, HttpResponse } from 'msw'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { API, challenge, insights, stats } from '../test/fixtures'
+import { API, bruno, challenge, insights, stats } from '../test/fixtures'
 import { renderApp } from '../test/render'
 import { server } from '../test/server'
 
@@ -169,18 +169,45 @@ describe('Dashboard (insights)', () => {
     const items = within(awards).getAllByRole('listitem', { name: /:/ })
     expect(items.map((i) => i.getAttribute('aria-label'))).toEqual([
       'Maior sequência: 12 dias seguidos (recorde)',
+      'Maratonista: 49 h treinados no total',
+      'Sem folga: 11 treinos no fim de semana',
       'Madrugador: 9 treinos antes das 7h',
       'Mais reações: 381 reações recebidas',
       'Mais comentado: 14 comentários',
       'Mais engajado: 77 reações dadas',
+      'Dupla dinâmica: 23 reações trocadas',
     ])
     // empate em 12: os dois rostos, cada um levando ao perfil
     const longest = items[0]
     expect(longest).toHaveTextContent('Ana e Bruno')
     expect(within(longest).getByRole('link', { name: 'Bruno Lima' })).toHaveAttribute('href', '/c/1/m/12')
-    expect(within(items[2]).getByRole('link', { name: /Bruno Lima/ })).toHaveAttribute('href', '/c/1/m/12')
+    expect(within(items[4]).getByRole('link', { name: /Bruno Lima/ })).toHaveAttribute('href', '/c/1/m/12')
+    const duo = items[7]
+    expect(duo).toHaveTextContent('Ana e Bruno')
+    expect(within(duo).getByRole('link', { name: 'Ana' })).toHaveAttribute('href', '/c/1/m/11')
+    expect(within(duo).getByRole('link', { name: 'Bruno' })).toHaveAttribute('href', '/c/1/m/12')
+    const dirs = 'Ana → Bruno: 11 · Bruno → Ana: 12'
+    expect(within(duo).getByLabelText(dirs)).toBeInTheDocument()
+    await userEvent.hover(within(duo).getByLabelText(dirs))
+    expect(await screen.findByRole('tooltip')).toHaveTextContent(dirs)
     expect(within(awards).queryByText('Coruja')).not.toBeInTheDocument()
     expect(within(awards).queryByText('Sequência atual')).not.toBeInTheDocument()
+  })
+
+  it('hides the new awards when null and shows short marathons in minutes', async () => {
+    const awards = { ...insights.awards, marathoner: null, weekend: null, dynamic_duo: null }
+    insightsReturns(200, { ...insights, awards })
+    renderApp('/c/1?tab=stats')
+    const list = await screen.findByRole('list', { name: 'Prêmios' })
+    expect(within(list).queryByText('Maratonista')).not.toBeInTheDocument()
+    expect(within(list).queryByText('Sem folga')).not.toBeInTheDocument()
+    expect(within(list).queryByText('Dupla dinâmica')).not.toBeInTheDocument()
+  })
+
+  it('formats marathon minutes', async () => {
+    insightsReturns(200, { ...insights, awards: { ...insights.awards, marathoner: { account: bruno, value: 45 } } })
+    renderApp('/c/1?tab=stats')
+    expect(await screen.findByRole('listitem', { name: 'Maratonista: 45 min treinados no total' })).toBeInTheDocument()
   })
 
   it('lists streaks in explicit record and now columns', async () => {
