@@ -71,8 +71,8 @@ export const stats: Stats = {
     { date: '2026-10-21', count: 1 },
   ],
   by_member: [
-    { account_id: 11, name: 'Ana Souza', workouts: 2, points: 2, calories: 800, distance: 5.2 },
-    { account_id: 12, name: 'Bruno Lima', workouts: 1, points: 1, calories: 400, distance: 5.2 },
+    { account_id: 11, name: 'Ana Souza', workouts: 2, points: 2, calories: 800, distance: 5.2, active_days: 2 },
+    { account_id: 12, name: 'Bruno Lima', workouts: 1, points: 1, calories: 400, distance: 5.2, active_days: 1 },
   ],
 }
 

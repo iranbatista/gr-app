@@ -125,11 +125,14 @@ function MemberView({ challengeId, memberId }: { challengeId: number; memberId: 
         </div>
       </header>
 
-      <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+      <div
+        className={`grid grid-cols-2 gap-4 ${totals?.active_days !== undefined ? 'sm:grid-cols-3 lg:grid-cols-5' : 'sm:grid-cols-4'}`}
+      >
         <StatTile label="Check-ins" value={totals?.workouts ?? 0} />
         <StatTile label="Pontos" value={formatPoints(entry?.score ?? totals?.points ?? 0)} />
         <StatTile label="Calorias" value={formatCalories(totals?.calories ?? 0)} />
         <StatTile label="Distância" value={formatDistance(totals?.distance ?? 0)} />
+        {totals?.active_days !== undefined && <StatTile label="Dias ativos" value={totals.active_days} />}
       </div>
 
       {/* Dia e semana lado a lado no desktop, empilhados no celular. */}

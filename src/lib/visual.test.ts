@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { gradientFor, initials, isActive, shortName } from './visual'
+import { gradientFor, initials, isActive, rankMembers, shortName } from './visual'
 
 describe('initials', () => {
   it('uses first and last name', () => {
@@ -39,5 +39,16 @@ describe('shortName', () => {
     expect(shortName('Lucas Barcelos')).toBe('Lucas Barcelos')
     expect(shortName('Kayo')).toBe('Kayo')
     expect(shortName('  Fellipe   Gonçalves Vasconcelos ')).toBe('Fellipe Gonçalves')
+  })
+})
+
+describe('rankMembers', () => {
+  const m = (account_id: number, name: string, workouts: number, active_days?: number) => ({
+    account_id, name, workouts, active_days, points: 0, calories: 0, distance: 0,
+  })
+  it('sorts by the chosen metric desc, ties by name', () => {
+    const data = [m(1, 'Caio', 5, 2), m(2, 'Ana', 3, 3), m(3, 'Bia', 5, 3)]
+    expect(rankMembers(data, 'checkins').map((x) => x.name)).toEqual(['Bia', 'Caio', 'Ana'])
+    expect(rankMembers(data, 'dias').map((x) => x.name)).toEqual(['Ana', 'Bia', 'Caio'])
   })
 })

@@ -21,6 +21,8 @@ export interface MemberStats {
   points: number
   calories: number
   distance: number
+  /** Dias distintos com check-in. Opcional até a API nova estar no ar. */
+  active_days?: number
 }
 
 export interface Stats {

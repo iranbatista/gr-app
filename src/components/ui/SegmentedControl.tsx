@@ -1,5 +1,6 @@
 import type { LucideIcon } from 'lucide-react'
 import type { ReactNode } from 'react'
+import { Tooltip } from './Tooltip'
 
 /** Pill do grupo: ativa em --tint com aro de marca, inativa em contorno fino. */
 export function segmentClass(active: boolean) {
@@ -28,6 +29,9 @@ export interface Segment<T extends string> {
   label: string
   icon?: LucideIcon
   count?: number
+  disabled?: boolean
+  /** Explicação em tooltip, útil quando a opção está desabilitada. */
+  hint?: string
 }
 
 interface Props<T extends string> {
@@ -43,18 +47,28 @@ export function SegmentedControl<T extends string>({ label, value, options, onCh
     <div role="group" aria-label={label} className="-mx-1 flex gap-2 overflow-x-auto px-1 pb-1">
       {options.map((o) => {
         const active = o.value === value
-        return (
+        const button = (
           <button
             key={o.value}
             type="button"
             aria-pressed={active}
+            disabled={o.disabled}
             onClick={() => onChange(o.value)}
-            className={segmentClass(active)}
+            className={`${segmentClass(active)} disabled:cursor-not-allowed disabled:opacity-45`}
           >
             {o.icon && <o.icon size={15} strokeWidth={1.75} />}
             {o.label}
             {o.count !== undefined && <SegmentCount active={active}>{o.count}</SegmentCount>}
           </button>
+        )
+        if (!o.hint) return button
+        // Botão desabilitado não recebe hover: o tooltip mora num span em volta.
+        return (
+          <Tooltip key={o.value} content={o.hint}>
+            <span tabIndex={o.disabled ? 0 : undefined} className="inline-flex shrink-0 rounded-full">
+              {button}
+            </span>
+          </Tooltip>
         )
       })}
     </div>

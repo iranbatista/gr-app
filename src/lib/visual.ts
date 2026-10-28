@@ -1,3 +1,4 @@
+import type { MemberStats } from '../api/types'
 import { parseDate } from './format'
 
 export function initials(name?: string | null): string {
@@ -24,4 +25,17 @@ export function isActive(c: { end_date?: string | null }, today: Date = new Date
 // Rótulo curto para eixo de gráfico: no máximo os dois primeiros nomes.
 export function shortName(name: string): string {
   return name.trim().split(/\s+/).slice(0, 2).join(' ')
+}
+
+export type MemberMetric = 'checkins' | 'dias'
+
+export function metricValue(m: MemberStats, metric: MemberMetric): number {
+  return metric === 'dias' ? (m.active_days ?? 0) : m.workouts
+}
+
+/** Ordena pela métrica escolhida (maior primeiro); empate pelo nome. */
+export function rankMembers(data: MemberStats[], metric: MemberMetric): MemberStats[] {
+  return [...data].sort(
+    (a, b) => metricValue(b, metric) - metricValue(a, metric) || (a.name ?? '').localeCompare(b.name ?? '', 'pt-BR'),
+  )
 }
