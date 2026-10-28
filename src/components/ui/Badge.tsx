@@ -6,6 +6,8 @@ const TONES = {
   tint: 'border border-[var(--brand-from)]/35 bg-[var(--tint)] font-semibold text-[var(--brand-ink)]',
   // Neutro: métricas, status encerrado.
   wash: 'border border-transparent bg-[var(--wash)] font-medium text-[var(--ink-muted)]',
+  // Variação para cima (delta de KPI).
+  positive: 'border border-[var(--positive-hairline)] bg-[var(--positive-tint)] font-semibold text-[var(--positive)]',
   danger: 'border border-[var(--danger-hairline)] bg-[var(--danger-tint)] font-medium text-[var(--danger)]',
 }
 

@@ -14,7 +14,7 @@ function describe(date: string, count: number): string {
   return `${SHORT_WEEKDAY[new Date(y, m - 1, d).getDay()]}, ${formatShortDate(date)} · ${checkins(count)}`
 }
 
-function Square({ level, className = '' }: { level: HeatLevel; className?: string }) {
+export function HeatSquare({ level, className = '' }: { level: HeatLevel; className?: string }) {
   return (
     <span
       className={`block aspect-square w-full rounded-[3px] ${level === 0 ? 'border border-[var(--hairline)]' : ''} ${className}`}
@@ -75,7 +75,7 @@ export function DayHeatmap({ data, title = 'Check-ins por dia' }: { data: DayCou
                         aria-label={describe(c.date, c.count)}
                         style={{ gridColumn: w + 2, gridRow: i + 2 }}
                       >
-                        <Square
+                        <HeatSquare
                           level={c.level}
                           className={
                             c.date === today ? 'ring-2 ring-[var(--ink)] ring-offset-1 ring-offset-[var(--card)]' : ''
@@ -87,21 +87,28 @@ export function DayHeatmap({ data, title = 'Check-ins por dia' }: { data: DayCou
                 ),
               )}
             </div>
-            <div
-              aria-hidden
-              className="mt-3 flex items-center justify-end gap-[3px] text-[11px] leading-none text-[var(--ink-muted)]"
-            >
-              <span className="mr-1.5">Menos</span>
-              {([0, 1, 2, 3, 4] as const).map((l) => (
-                <span key={l} className="w-3">
-                  <Square level={l} />
-                </span>
-              ))}
-              <span className="ml-1.5">Mais</span>
-            </div>
+            <HeatLegend />
           </div>
         </div>
       </div>
     </ChartCard>
+  )
+}
+
+/** Legenda "Menos ▢▢▢▢▢ Mais" alinhada à direita, sob a grade. */
+export function HeatLegend() {
+  return (
+    <div
+      aria-hidden
+      className="mt-3 flex items-center justify-end gap-[3px] text-[11px] leading-none text-[var(--ink-muted)]"
+    >
+      <span className="mr-1.5">Menos</span>
+      {([0, 1, 2, 3, 4] as const).map((l) => (
+        <span key={l} className="w-3">
+          <HeatSquare level={l} />
+        </span>
+      ))}
+      <span className="ml-1.5">Mais</span>
+    </div>
   )
 }
