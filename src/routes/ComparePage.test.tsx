@@ -162,6 +162,29 @@ describe('ComparePage', () => {
     expect(screen.getByRole('listitem', { name: /^Atletas ativos: Outubro 8\/10, Setembro 8\/10, 0%/ })).toBeInTheDocument()
   })
 
+  it('opens with a verdict summary', async () => {
+    mockCompareApi()
+    renderApp('/comparar?a=1&b=2')
+    const list = await screen.findByRole('list', { name: 'Resumo' })
+    await waitFor(() => expect(within(list).getAllByRole('listitem')).toHaveLength(4))
+    const items = within(list).getAllByRole('listitem').map((li) => li.textContent)
+    expect(items).toEqual([
+      'Outubro está 20% à frente de Setembro no mesmo ponto (120 × 100 check-ins até o dia 25)',
+      expect.stringMatching(/^Participação diária /),
+      '1 atleta novo e 1 saiu; 12 estão nos dois',
+      'Atleta A foi quem mais evoluiu (+10 check-ins)',
+    ])
+    expect(within(list).getByText('20% à frente').tagName).toBe('STRONG')
+  })
+
+  it('hides periods empty on both sides', async () => {
+    mockCompareApi()
+    renderApp('/comparar?a=1&b=2')
+    const chart = await screen.findByRole('img', { name: /^Períodos do dia:/ })
+    expect(chart.getAttribute('aria-label')).not.toMatch(/Madrugada/)
+    expect(chart.getAttribute('aria-label')).toMatch(/Noite/)
+  })
+
   it('compares athletes: summary, movers, filters and pagination', async () => {
     mockCompareApi()
     renderApp('/comparar?a=1&b=2')

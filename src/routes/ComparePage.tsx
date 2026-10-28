@@ -9,6 +9,7 @@ import { AwardsCompare } from '../components/compare/AwardsCompare'
 import { CompareControls } from '../components/compare/CompareControls'
 import { PaceCharts } from '../components/compare/PaceCharts'
 import { Scoreboard } from '../components/compare/Scoreboard'
+import { SummaryCard, SummarySkeleton } from '../components/compare/SummaryCard'
 import { NamesProvider, type Side } from '../components/compare/shared'
 import {
   AthletesSkeleton,
@@ -26,6 +27,7 @@ import {
   type CompareMode,
   type Span,
   alignment,
+  buildSummary,
   challengeSpan,
   compareAthletes,
   cutoffDate,
@@ -180,6 +182,14 @@ function Comparison({ challenges, a, b, requested, update }: ComparisonProps) {
   const athletesReady = statsA.data && statsB.data && rankA.data && rankB.data && !stale
   const athletesError = statsA.error ?? statsB.error ?? rankA.error ?? rankB.error
 
+  // Calculados uma vez: placar/atletas e o resumo leem os mesmos números.
+  const kpis = insights ? { a: kpiSide(insights.a, spanA.start, daysA), b: kpiSide(insights.b, spanB.start, daysB) } : null
+  const athletes = athletesReady
+    ? compareAthletes({ stats: statsA.data!, rankings: rankA.data! }, { stats: statsB.data!, rankings: rankB.data! }, mode)
+    : null
+  const summary = buildSummary({ names, mode, n: al.n, kpis, athletes })
+  const summaryPending = !kpis && !athletes && !insError && !athletesError
+
   return (
     <NamesProvider value={names}>
       <header className="flex flex-col gap-3">
@@ -219,10 +229,14 @@ function Comparison({ challenges, a, b, requested, update }: ComparisonProps) {
         </EmptyState>
       ) : (
         <div className="flex flex-col gap-14">
+          {summaryPending ? (
+            <SummarySkeleton />
+          ) : (
+            <SummaryCard items={summary} aside={mode === 'dia' ? `até o dia ${al.n}` : 'desafio inteiro'} />
+          )}
+
           <DashboardSection title="Placar" Icon={Scale}>
-            {insSection(<ScoreboardSkeleton />, (x) => (
-              <Scoreboard a={kpiSide(x.a, spanA.start, daysA)} b={kpiSide(x.b, spanB.start, daysB)} />
-            ))}
+            {insSection(<ScoreboardSkeleton />, () => <Scoreboard a={kpis!.a} b={kpis!.b} />)}
           </DashboardSection>
 
           <DashboardSection title="Ritmo" Icon={TrendingUp}>
@@ -247,15 +261,8 @@ function Comparison({ challenges, a, b, requested, update }: ComparisonProps) {
                 error={athletesError}
                 onRetry={() => [statsA, statsB, rankA, rankB].forEach((q) => void q.refetch())}
               />
-            ) : athletesReady ? (
-              <AthletesCompare
-                key={`${a.id}-${b.id}-${mode}`}
-                data={compareAthletes(
-                  { stats: statsA.data!, rankings: rankA.data! },
-                  { stats: statsB.data!, rankings: rankB.data! },
-                  mode,
-                )}
-              />
+            ) : athletes ? (
+              <AthletesCompare key={`${a.id}-${b.id}-${mode}`} data={athletes} />
             ) : (
               <AthletesSkeleton />
             )}
