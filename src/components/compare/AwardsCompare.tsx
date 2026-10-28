@@ -42,7 +42,7 @@ function Winner({ item, side, chip }: { item: AwardItem | null; side: Side; chip
     item.accounts.length === 1 ? shortName(item.accounts[0].full_name ?? 'Sem nome') : joinNames(item.accounts.map((a) => a.full_name))
   const to = item.accounts.length === 1 ? memberLink(cid, item.accounts[0]) : null
   return (
-    <div className="flex min-w-0 items-center gap-2.5">
+    <div className="flex min-w-0 flex-wrap items-center gap-x-2.5 gap-y-1.5">
       <Faces accounts={item.accounts} />
       <div className="flex min-w-0 flex-col">
         {to ? (
@@ -55,22 +55,9 @@ function Winner({ item, side, chip }: { item: AwardItem | null; side: Side; chip
         <span className="truncate text-xs tabular-nums text-[var(--ink-muted)]">
           <span className="font-semibold text-[var(--ink)]">{item.display ?? item.value.toLocaleString('pt-BR')}</span> {unit}
         </span>
-        {chip && <span className="mt-1.5 flex">{chip}</span>}
       </div>
-    </div>
-  )
-}
-
-/** Mesmo campeão em B: sem repetir rosto e nome, só o valor de lá. */
-function AlsoIn({ item }: { item: AwardItem }) {
-  const n = useNames()
-  const unit = item.value === 1 ? item.unit[0] : item.unit[1]
-  return (
-    <div className="flex min-w-0 flex-col">
-      <span className="text-sm text-[var(--ink-muted)]">também em {n.b}</span>
-      <span className="truncate text-xs tabular-nums text-[var(--ink-muted)]">
-        <span className="font-semibold text-[var(--ink)]">{item.display ?? item.value.toLocaleString('pt-BR')}</span> {unit}
-      </span>
+      {/* Selo à direita no desktop; no celular quebra para baixo do nome. */}
+      {chip && <span className="flex basis-full pl-[3.125rem] sm:ml-auto sm:basis-auto sm:pl-0">{chip}</span>}
     </div>
   )
 }
@@ -125,11 +112,8 @@ export function AwardsCompare({ a, b }: { a: Insights; b: Insights }) {
                 <div role="cell" key={s} className="flex min-w-0 items-center gap-2.5 pl-2.5 sm:block sm:pl-0">
                   {/* No celular as colunas não têm cabeçalho: a bolinha diz o lado. */}
                   <SideDot side={s} className="sm:hidden" />
-                  {s === 'b' && r.same ? (
-                    <AlsoIn item={r.b!} />
-                  ) : (
-                    <Winner item={r[s]} side={s} chip={s === 'a' && r.a ? (r.same ? repeatChip : newChip) : undefined} />
-                  )}
+                  {/* Bicampeão também mostra o vencedor completo em B: os valores diferem. */}
+                  <Winner item={r[s]} side={s} chip={s === 'a' && r.a ? (r.same ? repeatChip : newChip) : undefined} />
                 </div>
               ))}
             </div>

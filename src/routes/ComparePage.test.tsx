@@ -212,7 +212,11 @@ describe('ComparePage', () => {
     expect(within(early).getByText('Bruno Lima')).toBeInTheDocument()
     const longest = row('Maior sequência')
     expect(within(longest).getByText('Bicampeão')).toBeInTheDocument()
-    expect(within(longest).getByText('também em Setembro')).toBeInTheDocument()
+    // Bicampeão continua com o vencedor completo nos dois lados.
+    const [cellA, cellB] = within(longest).getAllByRole('cell')
+    expect(within(cellA).getByText('Ana e Bruno')).toBeInTheDocument()
+    expect(within(cellB).getByText('Ana e Bruno')).toBeInTheDocument()
+    expect(within(table).queryByText(/também em/)).not.toBeInTheDocument()
     expect(within(table).getAllByText('Bicampeão')).toHaveLength(7)
   })
 
