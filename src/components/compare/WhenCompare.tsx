@@ -6,7 +6,8 @@ import { ChartCard } from '../ChartCard'
 import { cursorFill, tick } from '../chartStyle'
 import { COLOR, CompareTooltipBox, SideDot, useNames } from './shared'
 
-// Barras agrupadas: A cheia na cor da marca, B na tinta neutra; 2px de folga entre elas.
+// Barras agrupadas: A na cor da marca, B na ardósia; 2px de folga entre elas.
+// Períodos zerados nos dois lados saem do gráfico (madrugada costuma ser vazia).
 const barProps = { radius: [4, 4, 4, 4] as [number, number, number, number], maxBarSize: 22, isAnimationActive: false }
 
 function PeriodsCard({ rows, peakA, peakB }: { rows: PeriodPair[]; peakA: number | null; peakB: number | null }) {
@@ -41,7 +42,7 @@ function PeriodsCard({ rows, peakA, peakB }: { rows: PeriodPair[]; peakA: number
               }}
             />
             <Bar dataKey="aPct" name={n.a} fill={COLOR.a} {...barProps} />
-            <Bar dataKey="bPct" name={n.b} fill={COLOR.b} fillOpacity={0.7} {...barProps} />
+            <Bar dataKey="bPct" name={n.b} fill={COLOR.b} {...barProps} />
           </BarChart>
         </ResponsiveContainer>
       </div>
@@ -94,7 +95,7 @@ function DurationCard({ rows }: { rows: DurationPair[] }) {
                 }}
               />
               <Bar dataKey="a" name={n.a} fill={COLOR.a} {...barProps} />
-              <Bar dataKey="b" name={n.b} fill={COLOR.b} fillOpacity={0.7} {...barProps} />
+              <Bar dataKey="b" name={n.b} fill={COLOR.b} {...barProps} />
             </BarChart>
           </ResponsiveContainer>
         </div>
@@ -106,7 +107,7 @@ function DurationCard({ rows }: { rows: DurationPair[] }) {
 export function WhenCompare({ a, b }: { a: Insights; b: Insights }) {
   return (
     <div className="grid gap-5 lg:grid-cols-2">
-      <PeriodsCard rows={periodPairs(a.periods, b.periods)} peakA={peakHour(a.punchcard)} peakB={peakHour(b.punchcard)} />
+      <PeriodsCard rows={periodPairs(a.periods, b.periods).filter((r) => r.a > 0 || r.b > 0)} peakA={peakHour(a.punchcard)} peakB={peakHour(b.punchcard)} />
       <DurationCard rows={durationPairs(a.duration_by_weekday, b.duration_by_weekday)} />
     </div>
   )

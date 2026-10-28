@@ -1,8 +1,9 @@
+import { ArrowDown, ArrowUp, Minus } from 'lucide-react'
 import { createContext, type ReactNode, useContext } from 'react'
 import { Badge } from '../ui/Badge'
 
-// Cores fixas da comparação: A = laranja da marca, B = tinta neutra. Em todo gráfico e badge.
-export const COLOR = { a: 'var(--brand-from)', b: 'var(--ink-muted)' } as const
+// Cores fixas da comparação: A = laranja da marca, B = ardósia neutra. Em todo gráfico e badge.
+export const COLOR = { a: 'var(--brand-from)', b: 'var(--series-b)' } as const
 
 export type Side = 'a' | 'b'
 
@@ -48,11 +49,17 @@ export function Legend() {
   )
 }
 
-/** Variação de A sobre B: verde subindo, neutra caindo (como os KPIs do dashboard). */
+/** Variação de A sobre B com seta: verde subindo, vermelho caindo, neutro parado (como a tabela de atletas). */
 export function DeltaBadge({ value, text, label }: { value: number | null; text: string; label?: string }) {
-  const up = value == null || value > 0.5
+  const dir = value == null || value >= 0.5 ? 'up' : value <= -0.5 ? 'down' : 'same'
+  const Icon = dir === 'up' ? ArrowUp : dir === 'down' ? ArrowDown : Minus
   return (
-    <Badge tone={up ? 'positive' : 'wash'} size="xs" aria-label={label} className={up ? '' : 'border-[var(--hairline)]'}>
+    <Badge
+      tone={dir === 'up' ? 'positive' : dir === 'down' ? 'danger' : 'wash'}
+      icon={Icon}
+      aria-label={label}
+      className={`font-semibold ${dir === 'same' ? 'border-[var(--hairline)]' : ''}`}
+    >
       {text}
     </Badge>
   )
@@ -64,7 +71,7 @@ interface TooltipRow {
 }
 
 /** Balão compartilhado dos gráficos: título (dia, período) e uma linha por lado. */
-export function CompareTooltipBox({ title, rows }: { title: string; rows: TooltipRow[] }) {
+export function CompareTooltipBox({ title, rows, footer }: { title: string; rows: TooltipRow[]; footer?: ReactNode }) {
   const n = useNames()
   return (
     <div className="flex min-w-36 flex-col gap-1 rounded-xl border border-[var(--hairline)] bg-[var(--card)] px-3 py-2 text-xs shadow-[0_12px_32px_-16px_rgba(36,36,36,0.35)]">
@@ -78,6 +85,7 @@ export function CompareTooltipBox({ title, rows }: { title: string; rows: Toolti
           <span className="font-semibold tabular-nums text-[var(--ink)]">{r.value ?? '—'}</span>
         </p>
       ))}
+      {footer && <div className="mt-0.5 border-t border-[var(--hairline)] pt-1.5 text-[var(--ink-muted)]">{footer}</div>}
     </div>
   )
 }

@@ -34,6 +34,8 @@
   --positive: #23804a;
   --positive-hairline: #c8ebd5;
   --positive-tint: #f0faf3;
+  /* Segunda série das comparações: ardósia neutra, escura o bastante para não parecer desabilitada. */
+  --series-b: #5b6472;
   --radius: 1rem;
   /* Escala do heatmap: um só tom (laranja da marca), só a intensidade muda. */
   --heat-0: var(--wash);
@@ -63,6 +65,7 @@
     --positive: #74d39b;
     --positive-hairline: rgba(116, 211, 155, 0.28);
     --positive-tint: rgba(116, 211, 155, 0.08);
+    --series-b: #a3aab5;
     --heat-0: var(--wash);
     --heat-1: color-mix(in oklch, var(--brand-from) 30%, var(--card));
     --heat-2: color-mix(in oklch, var(--brand-from) 52%, var(--card));
