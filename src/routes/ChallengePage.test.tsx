@@ -45,8 +45,8 @@ describe('ChallengePage', () => {
 
   it('switches tabs via the tab bar', async () => {
     renderApp('/c/1')
-    await userEvent.click(await screen.findByRole('tab', { name: 'Gráficos' }))
-    expect(screen.getByRole('tab', { name: 'Gráficos' })).toHaveAttribute('aria-selected', 'true')
+    await userEvent.click(await screen.findByRole('tab', { name: 'Dashboard' }))
+    expect(screen.getByRole('tab', { name: 'Dashboard' })).toHaveAttribute('aria-selected', 'true')
   })
 
   it('keeps feed filters when switching tabs', async () => {

@@ -1,6 +1,6 @@
 import { http, HttpResponse } from 'msw'
 import type { Workout } from '../api/types'
-import { API, challenge, comments, loneWorkout, oldChallenge, rankings, stats, syncMeta, workouts } from './fixtures'
+import { API, challenge, comments, insights, loneWorkout, oldChallenge, rankings, stats, syncMeta, workouts } from './fixtures'
 
 export function workoutsHandler(all: Workout[]) {
   return http.get(`${API}/challenges/:id/workouts`, ({ request }) => {
@@ -27,6 +27,7 @@ export const handlers = [
   ),
   http.get(`${API}/challenges/:id/rankings`, () => HttpResponse.json(rankings)),
   http.get(`${API}/challenges/:id/stats`, () => HttpResponse.json(stats)),
+  http.get(`${API}/challenges/:id/insights`, () => HttpResponse.json(insights)),
   workoutsHandler(workouts),
   http.get(`${API}/workouts/:wid`, ({ params }) => {
     const w = [...workouts, loneWorkout].find((x) => String(x.id) === params.wid)

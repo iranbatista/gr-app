@@ -1,17 +1,27 @@
 import { screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { http, HttpResponse } from 'msw'
-import { describe, expect, it } from 'vitest'
-import { API, stats } from '../test/fixtures'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { API, challenge, insights, stats } from '../test/fixtures'
 import { renderApp } from '../test/render'
 import { server } from '../test/server'
 
+// "Hoje" fixo: o fixture de insights termina em 27/10/2026.
+beforeEach(() => {
+  vi.useFakeTimers({ toFake: ['Date'], now: new Date('2026-10-27T12:00:00') })
+})
+afterEach(() => {
+  vi.useRealTimers()
+})
+
+function insightsReturns(status: number, body: unknown) {
+  server.use(http.get(`${API}/challenges/:id/insights`, () => HttpResponse.json(body as object, { status })))
+}
+
 describe('StatsTab', () => {
-  it('shows totals and chart sections', async () => {
+  it('shows chart sections from /stats', async () => {
     renderApp('/c/1?tab=stats')
-    expect(await screen.findByLabelText('Check-ins: 3')).toBeInTheDocument()
-    expect(screen.getByLabelText('Membros ativos: 2')).toBeInTheDocument()
-    expect(screen.getByRole('heading', { name: 'Check-ins por dia' })).toBeInTheDocument()
+    expect(await screen.findByRole('heading', { name: 'Check-ins por dia' })).toBeInTheDocument()
     expect(screen.getByRole('heading', { name: 'Check-ins por semana' })).toBeInTheDocument()
     expect(screen.getByRole('heading', { name: 'Check-ins por membro' })).toBeInTheDocument()
     // 2 membros cabem numa página: sem paginação
@@ -81,5 +91,143 @@ describe('StatsTab', () => {
     expect(within(metric).getByRole('button', { name: 'Dias ativos' })).toBeDisabled()
     // sem o dado, cai para check-ins em vez de mostrar zeros
     expect(within(metric).getByRole('button', { name: 'Check-ins' })).toHaveAttribute('aria-pressed', 'true')
+  })
+})
+
+describe('Dashboard (insights)', () => {
+  it('shows KPI values and the delta against yesterday', async () => {
+    renderApp('/c/1?tab=stats')
+    expect(await screen.findByRole('group', { name: 'Check-ins hoje: 10' })).toBeInTheDocument()
+    expect(screen.getByLabelText('+4 em relação a ontem')).toHaveTextContent('+4')
+    expect(screen.getByRole('group', { name: 'Participação: 80%' })).toHaveTextContent('média 7 dias: 40%')
+    expect(screen.getByRole('group', { name: 'Média por atleta: 12,0' })).toHaveTextContent('de 8 atletas ativos')
+    expect(screen.getByRole('group', { name: 'Horas treinadas: 90 h' })).toHaveTextContent('média 45 min por check-in')
+    // KPIs substituem os tiles antigos
+    expect(screen.queryByLabelText('Check-ins: 3')).not.toBeInTheDocument()
+  })
+
+  it('uses the last day once the challenge ended', async () => {
+    server.use(
+      http.get(`${API}/challenges/:id`, () =>
+        HttpResponse.json({ ...challenge, start_date: '2026-09-29', end_date: '2026-10-26' }),
+      ),
+    )
+    renderApp('/c/1?tab=stats')
+    expect(await screen.findByRole('group', { name: 'Último dia: 6' })).toBeInTheDocument()
+    expect(screen.getByLabelText('+2 em relação ao dia anterior')).toBeInTheDocument()
+    expect(screen.getByText('Encerrado ontem')).toBeInTheDocument()
+  })
+
+  it('shows the challenge progress', async () => {
+    server.use(
+      http.get(`${API}/challenges/:id`, () =>
+        HttpResponse.json({ ...challenge, start_date: '2026-10-01', end_date: '2026-10-28' }),
+      ),
+    )
+    renderApp('/c/1?tab=stats')
+    const bar = await screen.findByRole('progressbar', { name: 'Andamento do desafio' })
+    expect(bar).toHaveAttribute('aria-valuenow', '96')
+    expect(screen.getByText('Dia 27 de 28 · 96% · falta 1 dia')).toBeInTheDocument()
+  })
+
+  it('labels punch card cells and the peak hour', async () => {
+    renderApp('/c/1?tab=stats')
+    const peak = await screen.findByRole('img', { name: 'Ter 18h · 23 check-ins' })
+    expect(screen.getByText('Horário de pico: Ter 18h · 23 check-ins')).toBeInTheDocument()
+    expect(screen.getByRole('img', { name: 'Dom 3h · Nenhum check-in' })).toBeInTheDocument()
+    expect(screen.getAllByRole('img', { name: /^(Seg|Ter|Qua|Qui|Sex|Sáb|Dom) \d+h · / })).toHaveLength(7 * 24)
+    await userEvent.hover(peak)
+    expect(await screen.findByRole('tooltip')).toHaveTextContent('Ter 18h · 23 check-ins')
+  })
+
+  it('shows every period with its share, including empty ones', async () => {
+    renderApp('/c/1?tab=stats')
+    expect(await screen.findByLabelText('Madrugada, 0h–5h: nenhum check-in (0%)')).toBeInTheDocument()
+    expect(screen.getByLabelText('Manhã, 5h–12h: 30 check-ins (25%)')).toBeInTheDocument()
+    expect(screen.getByLabelText('Tarde, 12h–18h: 30 check-ins (25%)')).toBeInTheDocument()
+    expect(screen.getByLabelText('Noite, 18h–24h: 60 check-ins (50%)')).toBeInTheDocument()
+  })
+
+  it('renders awards, ties and hides the ones without a winner', async () => {
+    renderApp('/c/1?tab=stats')
+    const awards = await screen.findByRole('list', { name: 'Prêmios' })
+    const items = within(awards).getAllByRole('listitem', { name: /:/ })
+    expect(items.map((i) => i.getAttribute('aria-label'))).toEqual([
+      'Maior sequência: 12 dias seguidos',
+      'Sequência atual: 12 dias',
+      'Madrugador: 9 treinos antes das 7h',
+      'Mais reações: 381 reações recebidas',
+      'Mais comentado: 14 comentários',
+      'Mais engajado: 77 reações dadas',
+    ])
+    // empate em 12: os dois rostos, cada um levando ao perfil
+    const longest = items[0]
+    expect(longest).toHaveTextContent('Ana e Bruno')
+    expect(within(longest).getByRole('link', { name: 'Bruno Lima' })).toHaveAttribute('href', '/c/1/m/12')
+    expect(within(items[3]).getByRole('link', { name: /Bruno Lima/ })).toHaveAttribute('href', '/c/1/m/12')
+    expect(within(awards).queryByText('Coruja')).not.toBeInTheDocument()
+  })
+
+  it('lists streaks with the current one flagged', async () => {
+    renderApp('/c/1?tab=stats')
+    expect(await screen.findByLabelText('sequência atual de 12 dias')).toBeInTheDocument()
+    expect(screen.getByLabelText('sequência atual de 3 dias')).toBeInTheDocument()
+    expect(screen.getByLabelText('sem sequência atual')).toBeInTheDocument()
+  })
+
+  it('opens a top check-in in the detail dialog', async () => {
+    renderApp('/c/1?tab=stats')
+    await userEvent.click(await screen.findByRole('link', { name: 'Treino antigo, de Bruno Lima' }))
+    // fora de qualquer lista carregada: o modal busca o check-in sozinho
+    expect(await screen.findByRole('dialog', { name: 'Treino antigo' })).toBeInTheDocument()
+    await userEvent.keyboard('{Escape}')
+    await userEvent.click(screen.getByRole('link', { name: 'Musculação, de Ana Souza' }))
+    const dialog = await screen.findByRole('dialog', { name: 'Musculação' })
+    expect(within(dialog).getByText(/Peito e tríceps/)).toBeInTheDocument()
+  })
+
+  it('opens the dialog straight from the URL', async () => {
+    renderApp('/c/1?tab=stats&checkin=102')
+    expect(await screen.findByRole('dialog', { name: 'Musculação' })).toBeInTheDocument()
+  })
+
+  it('shows the most used emojis', async () => {
+    renderApp('/c/1?tab=stats')
+    expect(await screen.findByLabelText('🔥 42')).toBeInTheDocument()
+    expect(screen.getByLabelText('💪 30')).toBeInTheDocument()
+    expect(screen.getByText('77 reações')).toBeInTheDocument()
+  })
+
+  it('falls back to /stats with a notice while the API has no /insights', async () => {
+    insightsReturns(404, { detail: 'Not Found' })
+    renderApp('/c/1?tab=stats')
+    expect(await screen.findByText('Mais análises disponíveis após atualizar a API')).toBeInTheDocument()
+    expect(screen.getByLabelText('Check-ins: 3')).toBeInTheDocument()
+    expect(screen.getByLabelText('Membros ativos: 2')).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Check-ins por dia' })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Check-ins por membro' })).toBeInTheDocument()
+    expect(screen.queryByRole('heading', { name: 'Destaques' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument()
+  })
+
+  it('shows a retryable error only for the insights sections', async () => {
+    insightsReturns(500, { detail: 'boom' })
+    renderApp('/c/1?tab=stats')
+    const alert = await screen.findByRole('alert')
+    expect(alert).toHaveTextContent('Erro da API (500)')
+    // /stats segue de pé
+    expect(screen.getByRole('heading', { name: 'Check-ins por dia' })).toBeInTheDocument()
+    insightsReturns(200, insights)
+    await userEvent.click(within(alert).getByRole('button', { name: 'Tentar de novo' }))
+    expect(await screen.findByRole('heading', { name: 'Destaques' })).toBeInTheDocument()
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument()
+  })
+
+  it('shows skeletons while insights load', async () => {
+    server.use(http.get(`${API}/challenges/:id/insights`, () => new Promise<never>(() => {})))
+    renderApp('/c/1?tab=stats')
+    expect(await screen.findByRole('status', { name: 'Carregando indicadores' })).toBeInTheDocument()
+    expect(screen.getByRole('status', { name: 'Carregando horários' })).toBeInTheDocument()
+    expect(screen.getByRole('status', { name: 'Carregando destaques' })).toBeInTheDocument()
   })
 })

@@ -143,33 +143,196 @@ export function ChartsRowSkeleton() {
   )
 }
 
-export function StatsSkeleton() {
+function MemberChartSkeleton() {
   return (
-    <SkeletonGroup label="Carregando gráficos" className="flex flex-col gap-10">
-      <div className="grid grid-cols-2 gap-4">
-        <StatTileSkeleton />
-        <StatTileSkeleton />
+    <ChartCardSkeleton>
+      <div className="flex gap-2">
+        <Bar className="h-[2.375rem] w-28" />
+        <Bar className="h-[2.375rem] w-32" />
       </div>
-      <ChartsRowSkeleton />
-      <ChartCardSkeleton>
-        <div className="flex gap-2">
-          <Bar className="h-[2.375rem] w-28" />
-          <Bar className="h-[2.375rem] w-32" />
-        </div>
-        <div className="flex h-[380px] flex-col justify-around pb-10">
-          {Array.from({ length: 10 }, (_, i) => (
-            <div key={i} className="flex items-center gap-3">
-              <Bar className="h-3 w-24 shrink-0" />
-              <Bar className="h-[18px]" style={{ width: `${85 - i * 6}%` }} />
+      <div className="flex h-[380px] flex-col justify-around pb-10">
+        {Array.from({ length: 10 }, (_, i) => (
+          <div key={i} className="flex items-center gap-3">
+            <Bar className="h-3 w-24 shrink-0" />
+            <Bar className="h-[18px]" style={{ width: `${85 - i * 6}%` }} />
+          </div>
+        ))}
+      </div>
+      <div className="flex items-center justify-end gap-3">
+        <Bar className="h-3.5 w-20" />
+        <Circle className="h-9 w-9" />
+        <Circle className="h-9 w-9" />
+      </div>
+    </ChartCardSkeleton>
+  )
+}
+
+/** Rótulo de seção do dashboard: eyebrow + fio. */
+function SectionHeadSkeleton() {
+  return (
+    <div className="flex h-4 items-center gap-3">
+      <Bar className="h-3 w-28" />
+      <span aria-hidden className="h-px flex-1 bg-[var(--hairline)]" />
+    </div>
+  )
+}
+
+function ProgressSkeleton() {
+  return (
+    <div className="surface flex flex-col gap-3 p-5">
+      <div className="flex items-center justify-between gap-4">
+        <Bar className="h-3 w-24" />
+        <Bar className="h-4 w-56 max-w-[60%]" />
+      </div>
+      <Bar className="h-2.5 w-full" />
+      <div className="flex justify-between">
+        <Bar className="h-3 w-10" />
+        <Bar className="h-3 w-10" />
+      </div>
+    </div>
+  )
+}
+
+export function KpiRowSkeleton({ label }: { label?: string }) {
+  const body = (
+    <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+      {Array.from({ length: 4 }, (_, i) => (
+        <div key={i} className="surface flex flex-col overflow-hidden">
+          <div className="flex flex-col gap-2 p-4 pb-1 sm:p-5 sm:pb-1">
+            <div className="flex h-4 items-center">
+              <Bar className="h-3 w-24" />
             </div>
-          ))}
+            <Bar className="h-7 w-16 sm:h-8" />
+            <Bar className="h-3 w-28 max-w-full" />
+          </div>
+          <div aria-hidden className="mt-auto h-14 bg-gradient-to-t from-[var(--wash)] to-transparent" />
         </div>
-        <div className="flex items-center justify-end gap-3">
-          <Bar className="h-3.5 w-20" />
-          <Circle className="h-9 w-9" />
-          <Circle className="h-9 w-9" />
+      ))}
+    </div>
+  )
+  return label ? <SkeletonGroup label={label}>{body}</SkeletonGroup> : body
+}
+
+/** Punch card cheio e, embaixo, períodos e duração lado a lado. */
+export function WhenSkeleton() {
+  return (
+    <SkeletonGroup label="Carregando horários" className="flex flex-col gap-5">
+      <SectionHeadSkeleton />
+      <ChartCardSkeleton>
+        <div className="overflow-hidden">
+          <div className="grid min-w-[36rem] gap-[3px]" style={{ gridTemplateColumns: '2.25rem repeat(24, minmax(0, 1fr))' }}>
+            <span className="col-span-full h-[0.9375rem]" />
+            {Array.from({ length: 7 }, (_, r) => (
+              <div key={r} className="contents">
+                <Bar className="my-auto h-2.5 w-6" />
+                {Array.from({ length: 24 }, (_, c) => (
+                  <div key={c} aria-hidden className="aspect-square rounded-[3px] bg-[var(--wash)]" />
+                ))}
+              </div>
+            ))}
+          </div>
+        </div>
+        <div className="flex justify-end">
+          <Bar className="h-3 w-36" />
         </div>
       </ChartCardSkeleton>
+      <div className="grid gap-5 lg:grid-cols-2">
+        <ChartCardSkeleton>
+          <div className="flex min-h-56 flex-col justify-center gap-5">
+            {[60, 90, 70, 100].map((w, i) => (
+              <div key={i} className="flex items-center gap-3">
+                <Circle className="h-9 w-9" />
+                <div className="flex flex-1 flex-col gap-2">
+                  <Bar className="h-3.5 w-28" />
+                  <Bar className="h-2" style={{ width: `${w}%` }} />
+                </div>
+              </div>
+            ))}
+          </div>
+        </ChartCardSkeleton>
+        <ChartCardSkeleton>
+          <div className="flex min-h-56 flex-1 items-end gap-4 px-6 pb-6">
+            {[55, 70, 85, 60, 40, 75, 50].map((h, i) => (
+              <Block key={i} className="flex-1 rounded-[6px]" style={{ height: `${h}%` }} />
+            ))}
+          </div>
+        </ChartCardSkeleton>
+      </div>
+    </SkeletonGroup>
+  )
+}
+
+function AwardSkeleton({ featured = false }: { featured?: boolean }) {
+  return (
+    <div className={`surface flex flex-col gap-4 p-4 sm:p-5 ${featured ? 'col-span-2' : ''}`}>
+      <div className={`flex gap-3 ${featured ? 'items-center' : 'flex-col'}`}>
+        <Circle className="h-9 w-9" />
+        <Bar className="h-3 w-24" />
+      </div>
+      <div className="flex flex-col gap-2">
+        <Bar className={featured ? 'h-11 w-16' : 'h-8 w-12'} />
+        <Bar className="h-3 w-24" />
+      </div>
+      <div className="flex items-center gap-2">
+        <Circle className="h-9 w-9" />
+        <Bar className="h-3.5 w-20" />
+      </div>
+    </div>
+  )
+}
+
+/** Prêmios (8 vagas), sequências + emojis e os três check-ins em destaque. */
+export function HighlightsSkeleton() {
+  return (
+    <SkeletonGroup label="Carregando destaques" className="flex flex-col gap-5">
+      <SectionHeadSkeleton />
+      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+        <AwardSkeleton featured />
+        {Array.from({ length: 6 }, (_, i) => (
+          <AwardSkeleton key={i} />
+        ))}
+      </div>
+      <div className="grid gap-5 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
+        <ChartCardSkeleton>
+          {Array.from({ length: 5 }, (_, i) => (
+            <div key={i} className="flex items-center gap-3">
+              <Circle className="h-7 w-7" />
+              <Bar className="h-3.5 w-28" />
+              <Bar className="hidden h-2 flex-1 sm:block" />
+              <Bar className="ml-auto h-4 w-20" />
+            </div>
+          ))}
+        </ChartCardSkeleton>
+        <ChartCardSkeleton>
+          <div className="flex flex-1 flex-wrap content-center gap-2.5">
+            {[20, 18, 16, 16, 15, 14].map((w, i) => (
+              <Bar key={i} className="h-9" style={{ width: `${w * 0.25}rem` }} />
+            ))}
+          </div>
+        </ChartCardSkeleton>
+      </div>
+      <ChartCardSkeleton>
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4">
+          {Array.from({ length: 3 }, (_, i) => (
+            <Block key={i} className={`aspect-[4/3] rounded-[1.25rem] ${i === 0 ? 'col-span-2 sm:col-span-1' : ''}`} />
+          ))}
+        </div>
+      </ChartCardSkeleton>
+    </SkeletonGroup>
+  )
+}
+
+/** Aba inteira enquanto /stats carrega. */
+export function DashboardSkeleton() {
+  return (
+    <SkeletonGroup label="Carregando dashboard" className="flex flex-col gap-14">
+      <div className="flex flex-col gap-5">
+        <SectionHeadSkeleton />
+        <ProgressSkeleton />
+        <KpiRowSkeleton />
+        <ChartsRowSkeleton />
+        <MemberChartSkeleton />
+      </div>
     </SkeletonGroup>
   )
 }

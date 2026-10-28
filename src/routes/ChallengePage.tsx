@@ -1,4 +1,4 @@
-import { Activity, ArrowLeft, CalendarDays, ChartColumn, ListOrdered, Users } from 'lucide-react'
+import { Activity, ArrowLeft, CalendarDays, LayoutDashboard, ListOrdered, Users } from 'lucide-react'
 import { Link, useParams, useSearchParams } from 'react-router-dom'
 import { ApiError } from '../api/client'
 import { useChallenge } from '../api/queries'
@@ -16,7 +16,7 @@ import { StatsTab } from './StatsTab'
 
 const TABS = [
   { id: 'ranking', label: 'Ranking', Icon: ListOrdered },
-  { id: 'stats', label: 'Gráficos', Icon: ChartColumn },
+  { id: 'stats', label: 'Dashboard', Icon: LayoutDashboard },
   { id: 'feed', label: 'Feed', Icon: Activity },
 ] as const
 
