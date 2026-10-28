@@ -23,7 +23,14 @@ export function HeatSquare({ level, className = '' }: { level: HeatLevel; classN
   )
 }
 
-export function DayHeatmap({ data, title = 'Check-ins por dia' }: { data: DayCount[]; title?: string }) {
+interface Props {
+  data: DayCount[]
+  title?: string
+  /** Resumo próprio no lugar do padrão (o dashboard usa um curto, o card fica do tamanho da grade). */
+  aside?: string
+}
+
+export function DayHeatmap({ data, title = 'Check-ins por dia', aside }: Props) {
   const weeks = buildHeatmap(data)
   const months = monthLabels(weeks)
   const { total, activeDays, peak } = heatmapSummary(data)
@@ -35,7 +42,7 @@ export function DayHeatmap({ data, title = 'Check-ins por dia' }: { data: DayCou
     <ChartCard
       title={title}
       className="flex-1"
-      aside={[
+      aside={aside ?? [
         `${total} check-ins`,
         `${activeDays} ${activeDays === 1 ? 'dia ativo' : 'dias ativos'}`,
         peak && `pico ${peak.count} em ${formatShortDate(peak.date)}`,

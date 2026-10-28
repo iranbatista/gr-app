@@ -17,7 +17,7 @@ const LABELS: Record<MemberMetric, (n: number) => string> = {
   dias: (n) => `${n} ${n === 1 ? 'dia ativo' : 'dias ativos'}`,
 }
 
-export function MemberChart({ data }: { data: MemberStats[] }) {
+export function MemberChart({ data, className }: { data: MemberStats[]; className?: string }) {
   const [params, setParams] = useSearchParams()
   const [page, setPage] = useState(1)
   // Enquanto a API não manda active_days, "Dias ativos" fica desligado (sem zeros falsos).
@@ -43,7 +43,11 @@ export function MemberChart({ data }: { data: MemberStats[] }) {
   const height = Math.min(rows.length, PAGE_SIZE) * 34 + 40
   const gradient = `member-${useId().replace(/:/g, '')}`
   return (
-    <ChartCard title={metric === 'dias' ? 'Dias ativos por membro' : 'Check-ins por membro'}>
+    <ChartCard
+      title={metric === 'dias' ? 'Dias ativos por membro' : 'Check-ins por membro'}
+      className={className}
+      aside={`${rows.length} ${rows.length === 1 ? 'atleta' : 'atletas'}`}
+    >
       <div>
         <SegmentedControl
           label="Métrica"

@@ -1,4 +1,4 @@
-import { Dumbbell, Flame, Heart, type LucideIcon, MessageCircle, Moon, Sparkles, Sunrise, Zap } from 'lucide-react'
+import { Dumbbell, Flame, Heart, type LucideIcon, MessageCircle, Moon, Sparkles, Sunrise } from 'lucide-react'
 import { useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import type { Account, EmojiCount, Insights, Streak, TopWorkout } from '../api/types'
@@ -23,13 +23,11 @@ interface AwardItem {
 /** Prêmios na ordem do layout; os sem vencedor somem. */
 function awardItems(ins: Insights): AwardItem[] {
   const longest = streakLeaders(ins.streaks, 'longest')
-  const current = streakLeaders(ins.streaks, 'current')
   const a = ins.awards
   const single = (x: { account: Account; value: number } | null | undefined) =>
     x && x.value > 0 ? { value: x.value, accounts: [x.account] } : null
   const all: (Omit<AwardItem, 'value' | 'accounts'> & { win: { value: number; accounts: Account[] } | null })[] = [
-    { id: 'longest', title: 'Maior sequência', Icon: Flame, unit: ['dia seguido', 'dias seguidos'], win: longest.accounts.length ? longest : null },
-    { id: 'current', title: 'Sequência atual', Icon: Zap, unit: ['dia', 'dias'], win: current.accounts.length ? current : null },
+    { id: 'longest', title: 'Maior sequência', Icon: Flame, unit: ['dia seguido (recorde)', 'dias seguidos (recorde)'], win: longest.accounts.length ? longest : null },
     { id: 'early', title: 'Madrugador', Icon: Sunrise, unit: ['treino antes das 7h', 'treinos antes das 7h'], win: single(a.early_bird) },
     { id: 'night', title: 'Coruja', Icon: Moon, unit: ['treino após 21h', 'treinos após 21h'], win: single(a.night_owl) },
     { id: 'reactions', title: 'Mais reações', Icon: Heart, unit: ['reação recebida', 'reações recebidas'], win: single(a.most_reactions) },
@@ -44,7 +42,7 @@ function memberLink(challengeId: number, a: Account) {
 }
 
 /** Um vencedor: avatar + nome. Empate: rostos empilhados (até 3, depois "+N") e nomes juntos. */
-function Winners({ accounts, challengeId, wide }: { accounts: Account[]; challengeId: number; wide: boolean }) {
+function Winners({ accounts, challengeId }: { accounts: Account[]; challengeId: number }) {
   if (accounts.length === 1) {
     const a = accounts[0]
     const to = memberLink(challengeId, a)
@@ -65,9 +63,9 @@ function Winners({ accounts, challengeId, wide }: { accounts: Account[]; challen
     )
   }
   const extra = accounts.length - MAX_FACES
-  // Card estreito: rostos em cima, nomes embaixo (lado a lado eles quebram palavra por palavra).
+  // Card estreito (celular): rostos em cima, nomes embaixo; lado a lado eles quebrariam palavra por palavra.
   return (
-    <div className={`flex min-w-0 gap-2 ${wide ? 'items-center' : 'flex-col items-start'}`}>
+    <div className="flex min-w-0 flex-col items-start gap-2 lg:flex-row lg:items-center">
       <ul className="flex shrink-0 -space-x-2.5">
         {accounts.slice(0, MAX_FACES).map((a, i) => {
           const to = memberLink(challengeId, a)
@@ -97,67 +95,91 @@ function Winners({ accounts, challengeId, wide }: { accounts: Account[]; challen
   )
 }
 
-function AwardCard({ item, featured, challengeId }: { item: AwardItem; featured: boolean; challengeId: number }) {
+function AwardCard({ item, challengeId }: { item: AwardItem; challengeId: number }) {
   const unit = item.value === 1 ? item.unit[0] : item.unit[1]
   return (
-    <li
-      aria-label={`${item.title}: ${item.value} ${unit}`}
-      className={`surface relative flex min-w-0 flex-col gap-4 overflow-hidden p-4 sm:p-5 ${featured ? 'col-span-2' : ''}`}
-    >
-      {/* Marca d'água do ícone no destaque: preenche o card largo sem competir com o número. */}
-      {featured && (
-        <item.Icon
-          aria-hidden
-          size={168}
-          strokeWidth={1}
-          className="pointer-events-none absolute -bottom-6 -right-4 text-[var(--brand-from)] opacity-[0.09]"
-        />
-      )}
-      <div className={`flex gap-3 ${featured ? 'items-center' : 'flex-col items-start'}`}>
-        <span
-          className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full ${featured ? 'brand-gradient text-white' : 'bg-[var(--tint)] text-[var(--brand-ink)]'}`}
-        >
+    <li aria-label={`${item.title}: ${item.value} ${unit}`} className="surface flex min-w-0 flex-col gap-4 p-4 sm:p-5">
+      <div className="flex flex-col items-start gap-3 lg:flex-row lg:items-center">
+        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[var(--tint)] text-[var(--brand-ink)]">
           <item.Icon size={16} strokeWidth={1.75} />
         </span>
         <p className="eyebrow">{item.title}</p>
       </div>
       <div className="flex flex-col gap-1">
-        <span
-          className={`font-heading font-semibold leading-none tracking-tight tabular-nums ${featured ? 'brand-text text-[2.75rem]' : 'text-[2rem] text-[var(--ink)]'}`}
-        >
+        <span className="font-heading text-[2rem] font-semibold leading-none tracking-tight text-[var(--ink)] tabular-nums">
           {item.value.toLocaleString('pt-BR')}
         </span>
         <span className="text-[0.8125rem] leading-snug text-[var(--ink-muted)]">{unit}</span>
       </div>
       <div className="mt-auto">
-        <Winners accounts={item.accounts} challengeId={challengeId} wide={featured} />
+        <Winners accounts={item.accounts} challengeId={challengeId} />
       </div>
     </li>
   )
 }
 
-/** Grade de prêmios: com número ímpar, o primeiro ocupa duas colunas e fecha as linhas. */
+/** Grade uniforme de prêmios: 2 colunas no celular, 3 no desktop. */
 export function AwardsGrid({ insights, challengeId }: { insights: Insights; challengeId: number }) {
   const items = awardItems(insights)
   if (items.length === 0) return null
-  const featureFirst = items.length % 2 === 1
   return (
-    <ul aria-label="Prêmios" className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-      {items.map((item, i) => (
-        <AwardCard key={item.id} item={item} featured={featureFirst && i === 0} challengeId={challengeId} />
+    <ul aria-label="Prêmios" className="grid grid-cols-2 gap-4 lg:grid-cols-3">
+      {items.map((item) => (
+        <AwardCard key={item.id} item={item} challengeId={challengeId} />
       ))}
     </ul>
   )
 }
 
-/** Top 5 sequências: maior sequência em barra relativa ao líder, atual com chama. */
+const plural = (n: number, one: string, many: string) => `${n} ${n === 1 ? one : many}`
+
+/** Coluna "Agora": em andamento quando a atual é o próprio recorde; senão os dias atuais ou "—". */
+function Now({ s }: { s: Streak }) {
+  if (s.current > 0 && s.current === s.longest) {
+    return (
+      <Badge tone="tint" size="xs" icon={Flame} aria-label={`em andamento: ${plural(s.current, 'dia', 'dias')}`}>
+        <span className="hidden sm:inline">em andamento</span>
+      </Badge>
+    )
+  }
+  if (s.current > 0) {
+    return (
+      <span className="inline-flex items-center gap-1 text-sm font-medium tabular-nums text-[var(--ink)]">
+        <Flame size={12} strokeWidth={2} className="text-[var(--brand-ink)]" />
+        {plural(s.current, 'dia', 'dias')}
+      </span>
+    )
+  }
+  return (
+    <span aria-label="sem sequência agora" className="text-sm text-[var(--ink-muted)]">
+      —
+    </span>
+  )
+}
+
+// Colunas fixas (cabeçalho e linhas são grids separados): no celular "Agora" vira só a chama.
+const streakCols =
+  'grid grid-cols-[0.75rem_minmax(0,1fr)_3.75rem_3.75rem] items-center gap-2.5 sm:grid-cols-[1.25rem_minmax(0,1fr)_4.25rem_6.5rem] sm:gap-3'
+
+/** Top 5 sequências em colunas explícitas: atleta, recorde e sequência de agora. */
 export function StreakList({ streaks, challengeId }: { streaks: Streak[]; challengeId: number }) {
   if (streaks.length === 0) return null
   const top = streaks.slice(0, 5)
   const max = Math.max(1, ...top.map((s) => s.longest))
   return (
-    <ChartCard title="Sequências" aside="dias seguidos com check-in">
-      <ol className="flex flex-col gap-1">
+    <ChartCard title="Sequências" className="h-full" aside="dias seguidos com pelo menos um check-in">
+      <div role="table" aria-label="Sequências" className="flex flex-1 flex-col">
+        <div role="row" className={`${streakCols} border-b border-[var(--hairline)] pb-2`}>
+          <span role="columnheader" className="eyebrow col-span-2">
+            Atleta
+          </span>
+          <span role="columnheader" className="eyebrow text-right">
+            Recorde
+          </span>
+          <span role="columnheader" className="eyebrow text-right">
+            Agora
+          </span>
+        </div>
         {top.map((s, i) => {
           const name = s.account.full_name ?? 'Sem nome'
           const to = memberLink(challengeId, s.account)
@@ -168,39 +190,41 @@ export function StreakList({ streaks, challengeId }: { streaks: Streak[]; challe
             </>
           )
           return (
-            <li
+            // Linhas dividem a altura do card: a lista acompanha o gráfico ao lado.
+            <div
+              role="row"
               key={s.account.id ?? i}
-              className="grid grid-cols-[1.25rem_minmax(0,1fr)_auto] items-center gap-3 rounded-2xl py-1.5 sm:grid-cols-[1.25rem_minmax(0,11rem)_minmax(0,1fr)_auto]"
+              className={`${streakCols} min-h-14 flex-1 border-b border-[var(--hairline)] last:border-b-0`}
             >
-              <span className="text-right text-xs font-semibold tabular-nums text-[var(--ink-muted)]">{i + 1}</span>
-              {to ? (
-                <Link to={to} className="flex min-w-0 items-center gap-2.5 rounded-full py-0.5 pr-2 transition-colors hover:bg-[var(--wash)]">
-                  {who}
-                </Link>
-              ) : (
-                <div className="flex min-w-0 items-center gap-2.5">{who}</div>
-              )}
-              <div aria-hidden className="hidden h-2 overflow-hidden rounded-full bg-[var(--wash)] sm:block">
-                <div className="brand-gradient h-full rounded-full" style={{ width: `${(s.longest / max) * 100}%` }} />
-              </div>
-              <div className="flex items-center justify-end gap-2">
-                <span className="text-sm font-semibold tabular-nums text-[var(--ink)]">
-                  {s.longest} <span className="font-normal text-[var(--ink-muted)]">{s.longest === 1 ? 'dia' : 'dias'}</span>
-                </span>
-                {s.current > 0 ? (
-                  <Badge tone="tint" size="xs" icon={Flame} aria-label={`sequência atual de ${s.current} ${s.current === 1 ? 'dia' : 'dias'}`} className="min-w-[3.25rem] justify-center">
-                    {s.current}
-                  </Badge>
+              <span role="cell" className="text-right text-xs font-semibold tabular-nums text-[var(--ink-muted)]">
+                {i + 1}
+              </span>
+              <div role="cell" className="flex min-w-0 flex-col gap-1.5">
+                {to ? (
+                  <Link
+                    to={to}
+                    className="flex min-w-0 max-w-full items-center gap-2.5 self-start rounded-full py-0.5 pr-2 transition-colors hover:bg-[var(--wash)]"
+                  >
+                    {who}
+                  </Link>
                 ) : (
-                  <span aria-label="sem sequência atual" className="min-w-[3.25rem] text-center text-xs text-[var(--ink-muted)]">
-                    —
-                  </span>
+                  <div className="flex min-w-0 items-center gap-2.5">{who}</div>
                 )}
+                {/* Recorde relativo ao líder, sob o nome. */}
+                <div aria-hidden className="ml-[2.375rem] h-1.5 overflow-hidden rounded-full bg-[var(--wash)]">
+                  <div className="brand-gradient h-full rounded-full" style={{ width: `${(s.longest / max) * 100}%` }} />
+                </div>
               </div>
-            </li>
+              <span role="cell" className="text-right text-sm font-semibold tabular-nums text-[var(--ink)]">
+                {s.longest} <span className="font-normal text-[var(--ink-muted)]">{s.longest === 1 ? 'dia' : 'dias'}</span>
+              </span>
+              <span role="cell" className="flex justify-end">
+                <Now s={s} />
+              </span>
+            </div>
           )
         })}
-      </ol>
+      </div>
     </ChartCard>
   )
 }
@@ -278,13 +302,14 @@ export function EmojiCloud({ emojis }: { emojis: EmojiCount[] }) {
   const max = Math.max(...top.map((e) => e.count))
   const total = top.reduce((t, e) => t + e.count, 0)
   return (
-    <ChartCard title="Emojis mais usados" className="flex-1" aside={`${total.toLocaleString('pt-BR')} reações`}>
-      <ul className="flex flex-1 flex-wrap content-center items-center gap-2.5">
+    <ChartCard title="Emojis mais usados" aside={`${total.toLocaleString('pt-BR')} reações`}>
+      {/* Faixa de uma linha no desktop; quebra no celular. */}
+      <ul className="flex flex-wrap items-center gap-2.5">
         {top.map((e, i) => (
           <li
             key={e.emoji}
             aria-label={`${e.emoji} ${e.count}`}
-            className={`inline-flex items-center gap-2 rounded-full border px-3.5 py-1.5 ${i === 0 ? 'border-[var(--brand-from)]/35 bg-[var(--tint)]' : 'border-[var(--hairline)] bg-[var(--wash)]'}`}
+            className={`inline-flex h-10 items-center gap-2 rounded-full border px-3.5 ${i === 0 ? 'border-[var(--brand-from)]/35 bg-[var(--tint)]' : 'border-[var(--hairline)] bg-[var(--wash)]'}`}
           >
             <span aria-hidden className="leading-none" style={{ fontSize: `${emojiSize(e.count, max)}rem` }}>
               {e.emoji}

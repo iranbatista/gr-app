@@ -113,9 +113,9 @@ function ChartCardSkeleton({ children }: { children: React.ReactNode }) {
 }
 
 /** Heatmap e barras semanais lado a lado, como no layout final. */
-export function ChartsRowSkeleton() {
+export function ChartsRowSkeleton({ className = 'lg:grid-cols-2' }: { className?: string }) {
   return (
-    <div className="grid gap-5 lg:grid-cols-2">
+    <div className={`grid gap-5 ${className}`}>
       <ChartCardSkeleton>
         <div className="mx-auto grid grid-cols-[2rem_repeat(5,var(--cell))] gap-[3px] [--cell:clamp(0.875rem,7vw,2.25rem)] sm:[--cell:2.25rem]">
           <span className="col-span-6 h-[0.9375rem]" />
@@ -171,7 +171,8 @@ function MemberChartSkeleton() {
 function SectionHeadSkeleton() {
   return (
     <div className="flex h-4 items-center gap-3">
-      <Bar className="h-3 w-28" />
+      <Circle className="h-3.5 w-3.5" />
+      <Bar className="-ml-1 h-3 w-28" />
       <span aria-hidden className="h-px flex-1 bg-[var(--hairline)]" />
     </div>
   )
@@ -199,13 +200,17 @@ export function KpiRowSkeleton({ label }: { label?: string }) {
       {Array.from({ length: 4 }, (_, i) => (
         <div key={i} className="surface flex flex-col overflow-hidden">
           <div className="flex flex-col gap-2 p-4 pb-1 sm:p-5 sm:pb-1">
-            <div className="flex h-4 items-center">
+            {/* Mesma altura do rótulo do KPI: 2 linhas no celular, 1 no desktop. */}
+            <div className="flex h-[1.72rem] items-start pt-0.5 sm:h-4 sm:items-center sm:pt-0">
               <Bar className="h-3 w-24" />
             </div>
             <Bar className="h-7 w-16 sm:h-8" />
-            <Bar className="h-3 w-28 max-w-full" />
+            <Bar className="h-3 w-36 max-w-full" />
           </div>
-          <div aria-hidden className="mt-auto h-14 bg-gradient-to-t from-[var(--wash)] to-transparent" />
+          <div className="mt-auto">
+            <Bar className="mx-4 h-2 w-20 sm:mx-5" />
+            <div aria-hidden className="h-14 bg-gradient-to-t from-[var(--wash)] to-transparent" />
+          </div>
         </div>
       ))}
     </div>
@@ -262,16 +267,16 @@ export function WhenSkeleton() {
   )
 }
 
-function AwardSkeleton({ featured = false }: { featured?: boolean }) {
+function AwardSkeleton() {
   return (
-    <div className={`surface flex flex-col gap-4 p-4 sm:p-5 ${featured ? 'col-span-2' : ''}`}>
-      <div className={`flex gap-3 ${featured ? 'items-center' : 'flex-col'}`}>
+    <div className="surface flex flex-col gap-4 p-4 sm:p-5">
+      <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
         <Circle className="h-9 w-9" />
         <Bar className="h-3 w-24" />
       </div>
       <div className="flex flex-col gap-2">
-        <Bar className={featured ? 'h-11 w-16' : 'h-8 w-12'} />
-        <Bar className="h-3 w-24" />
+        <Bar className="h-8 w-12" />
+        <Bar className="h-3 w-28" />
       </div>
       <div className="flex items-center gap-2">
         <Circle className="h-9 w-9" />
@@ -281,35 +286,47 @@ function AwardSkeleton({ featured = false }: { featured?: boolean }) {
   )
 }
 
-/** Prêmios (8 vagas), sequências + emojis e os três check-ins em destaque. */
+/** Card de sequências ao lado do gráfico por membro: cabeçalho de colunas + 5 linhas. */
+export function StreaksSkeleton() {
+  return (
+    <SkeletonGroup label="Carregando sequências" className="flex">
+      <div className="surface flex flex-1 flex-col gap-4 p-5">
+        <div className="flex items-baseline justify-between gap-4">
+          <Bar className="h-5 w-28" />
+          <Bar className="hidden h-3.5 w-52 sm:block" />
+        </div>
+        <div className="flex justify-between border-b border-[var(--hairline)] pb-2">
+          <Bar className="h-3 w-14" />
+          <Bar className="h-3 w-32" />
+        </div>
+        <div className="flex flex-1 flex-col">
+          {Array.from({ length: 5 }, (_, i) => (
+            <div key={i} className="flex min-h-14 flex-1 items-center gap-3">
+              <Bar className="h-3 w-3" />
+              <Circle className="h-7 w-7" />
+              <div className="flex flex-1 flex-col gap-1.5">
+                <Bar className="h-3.5 w-24" />
+                <Bar className="h-1.5" style={{ width: `${90 - i * 12}%` }} />
+              </div>
+              <Bar className="h-4 w-14" />
+              <Bar className="h-5 w-24" />
+            </div>
+          ))}
+        </div>
+      </div>
+    </SkeletonGroup>
+  )
+}
+
+/** Seis prêmios iguais, os três check-ins em destaque e a faixa de emojis. */
 export function HighlightsSkeleton() {
   return (
     <SkeletonGroup label="Carregando destaques" className="flex flex-col gap-5">
       <SectionHeadSkeleton />
-      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-        <AwardSkeleton featured />
+      <div className="grid grid-cols-2 gap-4 lg:grid-cols-3">
         {Array.from({ length: 6 }, (_, i) => (
           <AwardSkeleton key={i} />
         ))}
-      </div>
-      <div className="grid gap-5 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
-        <ChartCardSkeleton>
-          {Array.from({ length: 5 }, (_, i) => (
-            <div key={i} className="flex items-center gap-3">
-              <Circle className="h-7 w-7" />
-              <Bar className="h-3.5 w-28" />
-              <Bar className="hidden h-2 flex-1 sm:block" />
-              <Bar className="ml-auto h-4 w-20" />
-            </div>
-          ))}
-        </ChartCardSkeleton>
-        <ChartCardSkeleton>
-          <div className="flex flex-1 flex-wrap content-center gap-2.5">
-            {[20, 18, 16, 16, 15, 14].map((w, i) => (
-              <Bar key={i} className="h-9" style={{ width: `${w * 0.25}rem` }} />
-            ))}
-          </div>
-        </ChartCardSkeleton>
       </div>
       <ChartCardSkeleton>
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4">
@@ -318,11 +335,18 @@ export function HighlightsSkeleton() {
           ))}
         </div>
       </ChartCardSkeleton>
+      <ChartCardSkeleton>
+        <div className="flex flex-wrap gap-2.5">
+          {[22, 19, 19, 18, 18, 17, 17, 16].map((w, i) => (
+            <Bar key={i} className="h-10" style={{ width: `${w * 0.25}rem` }} />
+          ))}
+        </div>
+      </ChartCardSkeleton>
     </SkeletonGroup>
   )
 }
 
-/** Aba inteira enquanto /stats carrega. */
+/** Aba inteira enquanto /stats carrega: visão geral, ritmo e atletas. */
 export function DashboardSkeleton() {
   return (
     <SkeletonGroup label="Carregando dashboard" className="flex flex-col gap-14">
@@ -330,8 +354,17 @@ export function DashboardSkeleton() {
         <SectionHeadSkeleton />
         <ProgressSkeleton />
         <KpiRowSkeleton />
-        <ChartsRowSkeleton />
-        <MemberChartSkeleton />
+      </div>
+      <div className="flex flex-col gap-5">
+        <SectionHeadSkeleton />
+        <ChartsRowSkeleton className="lg:grid-cols-[minmax(0,auto)_minmax(24rem,1fr)]" />
+      </div>
+      <div className="flex flex-col gap-5">
+        <SectionHeadSkeleton />
+        <div className="grid gap-5 lg:grid-cols-2">
+          <MemberChartSkeleton />
+          <div className="surface hidden lg:block" />
+        </div>
       </div>
     </SkeletonGroup>
   )

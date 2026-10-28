@@ -67,8 +67,11 @@ export function PunchCard({ grid }: { grid: number[][] }) {
               )),
             )}
           </div>
-          <HeatLegend />
         </div>
+      </div>
+      {/* Fora da rolagem: a legenda fica visível mesmo no celular. */}
+      <div className="-mt-3">
+        <HeatLegend />
       </div>
     </ChartCard>
   )

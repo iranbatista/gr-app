@@ -95,15 +95,36 @@ describe('StatsTab', () => {
 })
 
 describe('Dashboard (insights)', () => {
-  it('shows KPI values and the delta against yesterday', async () => {
+  it('shows KPIs as sentences: number plus context in words', async () => {
     renderApp('/c/1?tab=stats')
-    expect(await screen.findByRole('group', { name: 'Check-ins hoje: 10' })).toBeInTheDocument()
-    expect(screen.getByLabelText('+4 em relação a ontem')).toHaveTextContent('+4')
-    expect(screen.getByRole('group', { name: 'Participação: 80%' })).toHaveTextContent('média 7 dias: 40%')
-    expect(screen.getByRole('group', { name: 'Média por atleta: 12,0' })).toHaveTextContent('de 8 atletas ativos')
-    expect(screen.getByRole('group', { name: 'Horas treinadas: 90 h' })).toHaveTextContent('média 45 min por check-in')
+    const today = await screen.findByRole('group', { name: 'Check-ins hoje: 10' })
+    expect(today).toHaveTextContent('4 a mais que ontem (6)')
+    expect(screen.getByRole('group', { name: 'Atletas ativos hoje: 8/10' })).toHaveTextContent(
+      '80% do grupo · média 7 dias 40%',
+    )
+    expect(screen.getByRole('group', { name: 'Check-ins por atleta: 12,0' })).toHaveTextContent(
+      'média do grupo (120 ÷ 10)',
+    )
+    expect(screen.getByRole('group', { name: 'Horas treinadas: 90 h' })).toHaveTextContent(
+      '45 min por check-in, em média',
+    )
+    // sparklines dizem de quando são
+    expect(screen.getAllByText('últimos 14 dias')).toHaveLength(4)
     // KPIs substituem os tiles antigos
     expect(screen.queryByLabelText('Check-ins: 3')).not.toBeInTheDocument()
+  })
+
+  it('orders the sections from overview to highlights', async () => {
+    renderApp('/c/1?tab=stats')
+    await screen.findByRole('heading', { name: 'Destaques' })
+    const sections = screen.getAllByRole('heading', { level: 2 }).filter((h) => h.id.startsWith('sec-'))
+    expect(sections.map((h) => h.textContent)).toEqual([
+      'Visão geral',
+      'Ritmo do desafio',
+      'Atletas',
+      'Quando o grupo treina',
+      'Destaques',
+    ])
   })
 
   it('uses the last day once the challenge ended', async () => {
@@ -113,8 +134,8 @@ describe('Dashboard (insights)', () => {
       ),
     )
     renderApp('/c/1?tab=stats')
-    expect(await screen.findByRole('group', { name: 'Último dia: 6' })).toBeInTheDocument()
-    expect(screen.getByLabelText('+2 em relação ao dia anterior')).toBeInTheDocument()
+    const day = await screen.findByRole('group', { name: 'Check-ins no último dia: 6' })
+    expect(day).toHaveTextContent('2 a mais que o dia anterior (4)')
     expect(screen.getByText('Encerrado ontem')).toBeInTheDocument()
   })
 
@@ -153,8 +174,7 @@ describe('Dashboard (insights)', () => {
     const awards = await screen.findByRole('list', { name: 'Prêmios' })
     const items = within(awards).getAllByRole('listitem', { name: /:/ })
     expect(items.map((i) => i.getAttribute('aria-label'))).toEqual([
-      'Maior sequência: 12 dias seguidos',
-      'Sequência atual: 12 dias',
+      'Maior sequência: 12 dias seguidos (recorde)',
       'Madrugador: 9 treinos antes das 7h',
       'Mais reações: 381 reações recebidas',
       'Mais comentado: 14 comentários',
@@ -164,15 +184,32 @@ describe('Dashboard (insights)', () => {
     const longest = items[0]
     expect(longest).toHaveTextContent('Ana e Bruno')
     expect(within(longest).getByRole('link', { name: 'Bruno Lima' })).toHaveAttribute('href', '/c/1/m/12')
-    expect(within(items[3]).getByRole('link', { name: /Bruno Lima/ })).toHaveAttribute('href', '/c/1/m/12')
+    expect(within(items[2]).getByRole('link', { name: /Bruno Lima/ })).toHaveAttribute('href', '/c/1/m/12')
     expect(within(awards).queryByText('Coruja')).not.toBeInTheDocument()
+    expect(within(awards).queryByText('Sequência atual')).not.toBeInTheDocument()
   })
 
-  it('lists streaks with the current one flagged', async () => {
+  it('lists streaks in explicit record and now columns', async () => {
     renderApp('/c/1?tab=stats')
-    expect(await screen.findByLabelText('sequência atual de 12 dias')).toBeInTheDocument()
-    expect(screen.getByLabelText('sequência atual de 3 dias')).toBeInTheDocument()
-    expect(screen.getByLabelText('sem sequência atual')).toBeInTheDocument()
+    const table = await screen.findByRole('table', { name: 'Sequências' })
+    expect(within(table).getAllByRole('columnheader').map((c) => c.textContent)).toEqual(['Atleta', 'Recorde', 'Agora'])
+    const [, ana, bruno, caio] = within(table).getAllByRole('row')
+    // atual = recorde: "em andamento" em vez de repetir o número
+    expect(ana).toHaveTextContent('12 dias')
+    expect(within(ana).getByLabelText('em andamento: 12 dias')).toHaveTextContent('em andamento')
+    expect(bruno).toHaveTextContent('3 dias')
+    expect(within(caio).getByLabelText('sem sequência agora')).toHaveTextContent('—')
+    expect(screen.getByText('dias seguidos com pelo menos um check-in')).toBeInTheDocument()
+  })
+
+  it('draws the average duration per weekday', async () => {
+    renderApp('/c/1?tab=stats')
+    expect(
+      await screen.findByRole('img', {
+        name: 'Duração média por dia: Seg 41 min, Ter 38 min, Qua 52 min, Qui 45 min, Sex sem duração, Sáb 70 min, Dom 30 min',
+      }),
+    ).toBeInTheDocument()
+    expect(screen.getByText('treinos mais longos: sáb')).toBeInTheDocument()
   })
 
   it('opens a top check-in in the detail dialog', async () => {

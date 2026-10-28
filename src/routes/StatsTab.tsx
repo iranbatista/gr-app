@@ -1,4 +1,4 @@
-import { Dumbbell, Sparkles } from 'lucide-react'
+import { Clock, Dumbbell, Gauge, Sparkles, TrendingUp, Trophy, Users } from 'lucide-react'
 import { ApiError } from '../api/client'
 import { useChallenge, useInsights, useStats } from '../api/queries'
 import { ChallengeProgress } from '../components/ChallengeProgress'
@@ -12,11 +12,12 @@ import { KpiCards } from '../components/KpiCards'
 import { MemberChart } from '../components/MemberChart'
 import { PeriodBars } from '../components/PeriodBars'
 import { PunchCard } from '../components/PunchCard'
-import { DashboardSkeleton, HighlightsSkeleton, KpiRowSkeleton, WhenSkeleton } from '../components/skeletons'
+import { DashboardSkeleton, HighlightsSkeleton, KpiRowSkeleton, StreaksSkeleton, WhenSkeleton } from '../components/skeletons'
 import { StatTile } from '../components/StatTile'
 import { WeeklyChart } from '../components/WeeklyChart'
 import { WorkoutDetailDialog } from '../components/WorkoutDetail'
 import { referenceDay } from '../lib/dashboard'
+import { heatmapSummary } from '../lib/heatmap'
 
 // Antes do deploy da API nova o /insights cai no 404 genérico do FastAPI.
 function notDeployed(error: unknown): boolean {
@@ -61,30 +62,44 @@ export function StatsTab({ challengeId }: { challengeId: number }) {
   }
 
   const ref = referenceDay(challenge?.end_date)
-  const fallbackTiles = (
-    <div className="grid grid-cols-2 gap-4">
-      <StatTile label="Check-ins" value={s.total_workouts} />
-      <StatTile label="Membros ativos" value={s.members} />
-    </div>
-  )
+  const { activeDays } = heatmapSummary(s.by_day)
+  const streaks = ins.data?.streaks ?? []
+  const showStreaks = ins.isPending || streaks.length > 0
 
   return (
     <div className="flex flex-col gap-14">
-      <DashboardSection title="Visão geral">
+      <DashboardSection title="Visão geral" Icon={Gauge}>
         {progress}
         {ins.isPending ? (
           <KpiRowSkeleton label="Carregando indicadores" />
         ) : ins.isError ? (
-          fallbackTiles
+          // Sem /insights: os totais do /stats seguram o topo.
+          <div className="grid grid-cols-2 gap-4">
+            <StatTile label="Check-ins" value={s.total_workouts} />
+            <StatTile label="Membros ativos" value={s.members} />
+          </div>
         ) : (
           <KpiCards insights={ins.data} refDay={ref.day} isToday={ref.isToday} />
         )}
-        {/* Dia e semana lado a lado no desktop, empilhados no celular. */}
-        <div className="grid gap-5 lg:grid-cols-2">
-          <DayHeatmap data={s.by_day} />
+      </DashboardSection>
+
+      <DashboardSection title="Ritmo do desafio" Icon={TrendingUp}>
+        {/* Heatmap do tamanho da grade; as barras semanais ficam com o resto da largura. */}
+        <div className="grid gap-5 lg:grid-cols-[minmax(0,auto)_minmax(24rem,1fr)]">
+          <DayHeatmap data={s.by_day} aside={`${activeDays} ${activeDays === 1 ? 'dia ativo' : 'dias ativos'}`} />
           <WeeklyChart data={s.by_day} />
         </div>
-        <MemberChart data={s.by_member} />
+      </DashboardSection>
+
+      <DashboardSection title="Atletas" Icon={Users}>
+        <div className={`grid gap-5 ${showStreaks ? 'lg:grid-cols-2' : ''}`}>
+          <MemberChart data={s.by_member} />
+          {ins.isPending ? (
+            <StreaksSkeleton />
+          ) : (
+            streaks.length > 0 && <StreakList streaks={streaks} challengeId={challengeId} />
+          )}
+        </div>
       </DashboardSection>
 
       {ins.isPending ? (
@@ -100,7 +115,7 @@ export function StatsTab({ challengeId }: { challengeId: number }) {
         )
       ) : (
         <>
-          <DashboardSection title="Quando o grupo treina">
+          <DashboardSection title="Quando o grupo treina" Icon={Clock}>
             <PunchCard grid={ins.data.punchcard} />
             <div className="grid gap-5 lg:grid-cols-2">
               <PeriodBars periods={ins.data.periods} />
@@ -108,16 +123,10 @@ export function StatsTab({ challengeId }: { challengeId: number }) {
             </div>
           </DashboardSection>
 
-          <DashboardSection title="Destaques">
+          <DashboardSection title="Destaques" Icon={Trophy}>
             <AwardsGrid insights={ins.data} challengeId={challengeId} />
-            {/* Com só um dos dois, ele ocupa a linha inteira. */}
-            <div
-              className={`grid gap-5 ${ins.data.streaks.length > 0 && ins.data.emojis.length > 0 ? 'lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]' : ''}`}
-            >
-              <StreakList streaks={ins.data.streaks} challengeId={challengeId} />
-              <EmojiCloud emojis={ins.data.emojis} />
-            </div>
             <TopCheckins items={ins.data.top_workouts} />
+            <EmojiCloud emojis={ins.data.emojis} />
           </DashboardSection>
         </>
       )}
