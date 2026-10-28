@@ -33,7 +33,7 @@ export function SummaryCard({ items, aside }: { items: SummaryItem[]; aside: str
         </h2>
         <p className="text-[0.8125rem] text-[var(--ink-muted)]">{aside}</p>
       </header>
-      <ul aria-label="Resumo" className="grid gap-x-8 gap-y-3.5 md:grid-cols-2">
+      <ul aria-label="Resumo" className="flex flex-col gap-3">
         {items.map((item) => {
           const { Icon, cls } = iconFor(item)
           return (
@@ -67,7 +67,7 @@ export function SummarySkeleton() {
         <Bar className="h-5 w-24" />
         <Bar className="h-3.5 w-28" />
       </div>
-      <div className="grid gap-x-8 gap-y-3.5 md:grid-cols-2">
+      <div className="flex flex-col gap-3">
         {[85, 60, 70, 55].map((w, i) => (
           <div key={i} className="flex items-center gap-3">
             <Circle className="h-7 w-7" />

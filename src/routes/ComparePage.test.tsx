@@ -177,6 +177,17 @@ describe('ComparePage', () => {
     expect(within(list).getByText('20% à frente').tagName).toBe('STRONG')
   })
 
+  it('charts the cumulative difference and the smoothed participation', async () => {
+    mockCompareApi()
+    renderApp('/comparar?a=1&b=2')
+    // A: 8 check-ins antes do dia 1 + 25 dias até 27/10 = 116; B: 4 no dia 1.
+    expect(await screen.findByRole('img', { name: /^Diferença acumulada de check-ins:/ })).toHaveAccessibleName(
+      'Diferença acumulada de check-ins: +112 no dia 25 · Outubro à frente',
+    )
+    expect(screen.getByText('+112 no dia 25 · Outubro à frente')).toBeInTheDocument()
+    expect(screen.getByRole('img', { name: /^Participação diária, média móvel de 7 dias:/ })).toBeInTheDocument()
+  })
+
   it('hides periods empty on both sides', async () => {
     mockCompareApi()
     renderApp('/comparar?a=1&b=2')
