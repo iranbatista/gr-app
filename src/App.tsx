@@ -4,6 +4,7 @@ import { TooltipProvider } from './components/ui/Tooltip'
 import { SyncFooter } from './components/SyncFooter'
 import { ChallengePage } from './routes/ChallengePage'
 import { ChallengesPage } from './routes/ChallengesPage'
+import { ComparePage } from './routes/ComparePage'
 import { MemberPage } from './routes/MemberPage'
 
 export default function App() {
@@ -14,6 +15,7 @@ export default function App() {
         <div className="flex-1">
           <Routes>
             <Route path="/" element={<ChallengesPage />} />
+            <Route path="/comparar" element={<ComparePage />} />
             <Route path="/c/:id" element={<ChallengePage />} />
             <Route path="/c/:id/m/:memberId" element={<MemberPage />} />
           </Routes>

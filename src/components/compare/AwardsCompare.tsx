@@ -1,0 +1,101 @@
+import { Link } from 'react-router-dom'
+import type { Account, Insights } from '../../api/types'
+import { joinNames } from '../../lib/dashboard'
+import { pairSlots } from '../../lib/compare'
+import { shortName } from '../../lib/visual'
+import { Avatar } from '../Avatar'
+import { type AwardItem, awardSlots, memberLink } from '../Highlights'
+import { type Side, SideDot, useNames } from './shared'
+
+const MAX_FACES = 3
+
+function Faces({ accounts }: { accounts: Account[] }) {
+  return (
+    <span className="flex shrink-0 -space-x-2.5">
+      {accounts.slice(0, MAX_FACES).map((a, i) => (
+        <span key={a.id ?? i} className="relative rounded-full ring-2 ring-[var(--card)]">
+          <Avatar url={a.profile_picture_url} name={a.full_name} size="md" />
+        </span>
+      ))}
+      {accounts.length > MAX_FACES && (
+        <span className="relative flex items-center justify-center rounded-full border-2 border-[var(--card)] h-10 w-10 bg-[var(--wash)] text-[0.6875rem] font-semibold text-[var(--ink-muted)]">
+          +{accounts.length - MAX_FACES}
+        </span>
+      )}
+    </span>
+  )
+}
+
+/** Vencedor de um lado: rostos, nome (link para o atleta naquele desafio) e valor com unidade. */
+function Winner({ item, side }: { item: AwardItem | null; side: Side }) {
+  const n = useNames()
+  if (!item) {
+    return <span className="text-sm text-[var(--ink-muted)]">—</span>
+  }
+  const cid = n.ids[side]
+  const unit = item.value === 1 ? item.unit[0] : item.unit[1]
+  const names =
+    item.accounts.length === 1 ? shortName(item.accounts[0].full_name ?? 'Sem nome') : joinNames(item.accounts.map((a) => a.full_name))
+  const to = item.accounts.length === 1 ? memberLink(cid, item.accounts[0]) : null
+  return (
+    <div className="flex min-w-0 items-center gap-2.5">
+      <Faces accounts={item.accounts} />
+      <div className="flex min-w-0 flex-col">
+        {to ? (
+          <Link to={to} className="truncate text-sm font-medium text-[var(--ink)] hover:underline">
+            {names}
+          </Link>
+        ) : (
+          <span className="line-clamp-2 text-sm font-medium leading-tight text-[var(--ink)]">{names}</span>
+        )}
+        <span className="truncate text-xs tabular-nums text-[var(--ink-muted)]">
+          <span className="font-semibold text-[var(--ink)]">{item.display ?? item.value.toLocaleString('pt-BR')}</span> {unit}
+        </span>
+      </div>
+    </div>
+  )
+}
+
+const cols = 'grid grid-cols-1 gap-x-4 gap-y-2.5 sm:grid-cols-[11rem_minmax(0,1fr)_minmax(0,1fr)] sm:items-center'
+
+/** Tabela prêmio | vencedor A | vencedor B, na ordem dos destaques do dashboard. */
+export function AwardsCompare({ a, b }: { a: Insights; b: Insights }) {
+  const n = useNames()
+  const rows = pairSlots(awardSlots(a), awardSlots(b))
+  if (rows.length === 0) return null
+  return (
+    <div role="table" aria-label="Prêmios comparados" className="surface flex flex-col px-5 py-2">
+      <div role="row" className={`${cols} hidden border-b border-[var(--hairline)] py-3 sm:grid`}>
+        <span role="columnheader" className="eyebrow">
+          Prêmio
+        </span>
+        {(['a', 'b'] as const).map((s) => (
+          <span key={s} role="columnheader" className="eyebrow flex min-w-0 items-center gap-1.5">
+            <SideDot side={s} />
+            <span className="truncate">{n[s]}</span>
+          </span>
+        ))}
+      </div>
+      {rows.map((r) => {
+        const meta = (r.a ?? r.b)!
+        return (
+          <div role="row" key={meta.id} className={`${cols} border-b border-[var(--hairline)] py-3.5 last:border-b-0`}>
+            <span role="rowheader" className="flex items-center gap-2.5">
+              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[var(--tint)] text-[var(--brand-ink)]">
+                <meta.Icon size={15} strokeWidth={1.75} />
+              </span>
+              <span className="eyebrow">{meta.title}</span>
+            </span>
+            {(['a', 'b'] as const).map((s) => (
+              <div role="cell" key={s} className="flex min-w-0 items-center gap-2.5 pl-2.5 sm:block sm:pl-0">
+                {/* No celular as colunas não têm cabeçalho: a bolinha diz o lado. */}
+                <SideDot side={s} className="sm:hidden" />
+                <Winner item={r[s]} side={s} />
+              </div>
+            ))}
+          </div>
+        )
+      })}
+    </div>
+  )
+}
