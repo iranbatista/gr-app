@@ -50,10 +50,11 @@ const dayClasses = {
   day: 'p-0.5 text-center',
   day_button:
     'inline-flex h-9 w-9 items-center justify-center rounded-full tabular-nums transition-colors hover:bg-[var(--wash)] disabled:pointer-events-none',
-  // Hoje: aro de marca; selecionado: gradiente cheio.
+  // Hoje: aro de marca; selecionado: gradiente cheio (escrito por extenso: .brand-gradient
+  // é classe de componente e não funciona como variante arbitrária).
   today: '[&>button]:font-semibold [&>button]:text-[var(--brand-ink)] [&>button]:ring-1 [&>button]:ring-[var(--brand-from)]/50',
   selected:
-    '[&>button]:brand-gradient [&>button]:font-semibold [&>button]:!text-white [&>button]:ring-0 [&>button]:hover:brightness-[1.04]',
+    '[&>button]:bg-[linear-gradient(100deg,var(--brand-from),var(--brand-mid)_45%,var(--brand-to))] [&>button]:font-semibold [&>button]:!text-white [&>button]:ring-0 [&>button]:hover:brightness-[1.04]',
   outside: 'text-[var(--ink-muted)]/50',
   disabled: 'opacity-30',
 }
