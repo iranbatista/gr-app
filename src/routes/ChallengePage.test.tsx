@@ -55,7 +55,7 @@ describe('ChallengePage', () => {
     await userEvent.click(screen.getByRole('tab', { name: 'Ranking' }))
     await userEvent.click(screen.getByRole('tab', { name: 'Feed' }))
     expect(await screen.findByText('Bike')).toBeInTheDocument()
-    expect(screen.getByLabelText('Membro')).toHaveValue('12')
+    expect(await screen.findByRole('button', { name: 'Remover filtro Bruno Lima' })).toBeInTheDocument()
     expect(screen.getAllByRole('article')).toHaveLength(1)
   })
 })

@@ -1,4 +1,4 @@
-import { screen, within } from '@testing-library/react'
+import { screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { http, HttpResponse } from 'msw'
 import { afterEach, describe, expect, it, vi } from 'vitest'
@@ -22,16 +22,42 @@ describe('FeedTab', () => {
     renderApp('/c/1?tab=feed&member=12')
     await screen.findByText('Bike')
     expect(screen.getAllByRole('article')).toHaveLength(1)
-    expect(screen.getByLabelText('Membro')).toHaveValue('12')
+    // filtro aplicado aparece como chip removível
+    expect(await screen.findByRole('button', { name: 'Remover filtro Bruno Lima' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /Filtros/ })).toHaveTextContent('1')
   })
 
-  it('changes member filter via select', async () => {
+  it('removes a filter from its chip', async () => {
+    renderApp('/c/1?tab=feed&member=12&since=2026-10-01')
+    await screen.findByText('Bike')
+    expect(screen.getByRole('button', { name: 'Remover filtro desde 01/10' })).toBeInTheDocument()
+    await userEvent.click(await screen.findByRole('button', { name: 'Remover filtro Bruno Lima' }))
+    expect(await screen.findAllByRole('article')).toHaveLength(3)
+    expect(screen.queryByRole('button', { name: 'Remover filtro Bruno Lima' })).not.toBeInTheDocument()
+  })
+
+  it('changes member filter via the filters dialog', async () => {
     renderApp('/c/1?tab=feed')
     await screen.findAllByRole('article')
-    await screen.findByRole('option', { name: 'Bruno Lima' })
-    await userEvent.selectOptions(screen.getByLabelText('Membro'), '12')
-    expect(await screen.findByText('Bike')).toBeInTheDocument()
-    expect(screen.getAllByRole('article')).toHaveLength(1)
+    await userEvent.click(screen.getByRole('button', { name: /Filtros/ }))
+    const dialog = await screen.findByRole('dialog', { name: 'Filtros' })
+    await userEvent.click(within(dialog).getByRole('combobox', { name: 'Membro' }))
+    await userEvent.click(await screen.findByRole('option', { name: 'Bruno Lima' }))
+    // nada muda até aplicar (o fundo fica aria-hidden com o modal aberto)
+    expect(screen.getAllByRole('article', { hidden: true })).toHaveLength(3)
+    await userEvent.click(within(dialog).getByRole('button', { name: 'Aplicar' }))
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+    expect(await screen.findByRole('button', { name: 'Remover filtro Bruno Lima' })).toBeInTheDocument()
+    await waitFor(() => expect(screen.getAllByRole('article')).toHaveLength(1))
+    expect(screen.getByText('Bike')).toBeInTheDocument()
+  })
+
+  it('clears every filter from the dialog', async () => {
+    renderApp('/c/1?tab=feed&member=12')
+    await screen.findByText('Bike')
+    await userEvent.click(screen.getByRole('button', { name: /Filtros/ }))
+    await userEvent.click(await screen.findByRole('button', { name: 'Limpar filtros' }))
+    expect(await screen.findAllByRole('article')).toHaveLength(3)
   })
 
   it('loads more pages', async () => {
