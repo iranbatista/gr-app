@@ -152,12 +152,12 @@ export function formatDecimal(n: number): string {
   return n.toLocaleString(LOCALE, { minimumFractionDigits: 1, maximumFractionDigits: 1 })
 }
 
-/** Comparação em palavras: "2 a menos que ontem (24)", "igual a ontem". */
+/** Comparação curta em palavras: "2 a menos que ontem", "igual a ontem". */
 export function compareText(value: number, previous: number, isToday = true): string {
   const diff = value - previous
   if (diff === 0) return isToday ? 'igual a ontem' : 'igual ao dia anterior'
   const than = isToday ? 'que ontem' : 'que o dia anterior'
-  return `${Math.abs(diff)} a ${diff > 0 ? 'mais' : 'menos'} ${than} (${previous})`
+  return `${Math.abs(diff)} a ${diff > 0 ? 'mais' : 'menos'} ${than}`
 }
 
 export function hourLabel(h: number): string {

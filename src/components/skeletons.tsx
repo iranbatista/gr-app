@@ -200,17 +200,13 @@ export function KpiRowSkeleton({ label }: { label?: string }) {
       {Array.from({ length: 4 }, (_, i) => (
         <div key={i} className="surface flex flex-col overflow-hidden">
           <div className="flex flex-col gap-2 p-4 pb-1 sm:p-5 sm:pb-1">
-            {/* Mesma altura do rótulo do KPI: 2 linhas no celular, 1 no desktop. */}
-            <div className="flex h-[1.72rem] items-start pt-0.5 sm:h-4 sm:items-center sm:pt-0">
+            <div className="flex h-4 items-center">
               <Bar className="h-3 w-24" />
             </div>
             <Bar className="h-7 w-16 sm:h-8" />
-            <Bar className="h-3 w-36 max-w-full" />
+            <Bar className="h-3 w-28 max-w-full" />
           </div>
-          <div className="mt-auto">
-            <Bar className="mx-4 h-2 w-20 sm:mx-5" />
-            <div aria-hidden className="h-14 bg-gradient-to-t from-[var(--wash)] to-transparent" />
-          </div>
+          <div aria-hidden className="mt-auto h-14 bg-gradient-to-t from-[var(--wash)] to-transparent" />
         </div>
       ))}
     </div>

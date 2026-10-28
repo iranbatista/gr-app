@@ -134,10 +134,10 @@ describe('formatters', () => {
 
 describe('compareText', () => {
   it('compares with yesterday in words', () => {
-    expect(compareText(22, 24)).toBe('2 a menos que ontem (24)')
-    expect(compareText(22, 19)).toBe('3 a mais que ontem (19)')
+    expect(compareText(22, 24)).toBe('2 a menos que ontem')
+    expect(compareText(22, 19)).toBe('3 a mais que ontem')
     expect(compareText(5, 5)).toBe('igual a ontem')
-    expect(compareText(6, 4, false)).toBe('2 a mais que o dia anterior (4)')
+    expect(compareText(6, 4, false)).toBe('2 a mais que o dia anterior')
     expect(compareText(4, 4, false)).toBe('igual ao dia anterior')
   })
 })

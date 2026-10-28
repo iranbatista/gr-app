@@ -98,18 +98,12 @@ describe('Dashboard (insights)', () => {
   it('shows KPIs as sentences: number plus context in words', async () => {
     renderApp('/c/1?tab=stats')
     const today = await screen.findByRole('group', { name: 'Check-ins hoje: 10' })
-    expect(today).toHaveTextContent('4 a mais que ontem (6)')
-    expect(screen.getByRole('group', { name: 'Atletas ativos hoje: 8/10' })).toHaveTextContent(
-      '80% do grupo · média 7 dias 40%',
-    )
-    expect(screen.getByRole('group', { name: 'Check-ins por atleta: 12,0' })).toHaveTextContent(
-      'média do grupo (120 ÷ 10)',
-    )
-    expect(screen.getByRole('group', { name: 'Horas treinadas: 90 h' })).toHaveTextContent(
-      '45 min por check-in, em média',
-    )
-    // sparklines dizem de quando são
-    expect(screen.getAllByText('últimos 14 dias')).toHaveLength(4)
+    expect(today).toHaveTextContent('4 a mais que ontem')
+    expect(today).not.toHaveTextContent('(6)')
+    expect(screen.getByRole('group', { name: 'Atletas hoje: 8/10' })).toHaveTextContent('80% do grupo')
+    expect(screen.getByRole('group', { name: 'Check-ins/atleta: 12,0' })).toHaveTextContent('média do grupo')
+    expect(screen.getByRole('group', { name: 'Horas treinadas: 90 h' })).toHaveTextContent('45 min por check-in')
+    expect(screen.queryByText(/últimos 14 dias/)).not.toBeInTheDocument()
     // KPIs substituem os tiles antigos
     expect(screen.queryByLabelText('Check-ins: 3')).not.toBeInTheDocument()
   })
@@ -134,8 +128,8 @@ describe('Dashboard (insights)', () => {
       ),
     )
     renderApp('/c/1?tab=stats')
-    const day = await screen.findByRole('group', { name: 'Check-ins no último dia: 6' })
-    expect(day).toHaveTextContent('2 a mais que o dia anterior (4)')
+    const day = await screen.findByRole('group', { name: 'Check-ins, último dia: 6' })
+    expect(day).toHaveTextContent('2 a mais que o dia anterior')
     expect(screen.getByText('Encerrado ontem')).toBeInTheDocument()
   })
 
