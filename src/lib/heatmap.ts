@@ -30,19 +30,25 @@ function mondayOf(t: number): number {
 
 // Limiares pelos quartis dos dias com check-in: poucos dias enormes não
 // achatam a escala inteira. Zero é sempre nível 0.
-function thresholds(counts: number[]): [number, number, number] {
+export function thresholds(counts: number[]): [number, number, number] {
   const sorted = counts.filter((c) => c > 0).sort((a, b) => a - b)
   if (sorted.length === 0) return [0, 0, 0]
   const q = (p: number) => sorted[Math.floor(p * (sorted.length - 1))]
   return [q(0.25), q(0.5), q(0.75)]
 }
 
-function level(count: number, [q1, q2, q3]: [number, number, number]): HeatLevel {
+export function level(count: number, [q1, q2, q3]: [number, number, number]): HeatLevel {
   if (count <= 0) return 0
   if (count <= q1) return 1
   if (count <= q2) return 2
   if (count <= q3) return 3
   return 4
+}
+
+/** Níveis do punch card (7 × 24): mesmos quartis do heatmap, sobre todas as células. */
+export function punchcardLevels(grid: number[][]): HeatLevel[][] {
+  const limits = thresholds(grid.flat())
+  return grid.map((row) => row.map((c) => level(c, limits)))
 }
 
 /** Semanas (segunda a domingo) × 7 dias, do primeiro ao último dia com dado. */

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { buildHeatmap, heatmapSummary, monthLabels, weeklyTotals } from './heatmap'
+import { buildHeatmap, heatmapSummary, monthLabels, punchcardLevels, weeklyTotals } from './heatmap'
 
 describe('buildHeatmap', () => {
   it('returns no weeks for empty data', () => {
@@ -118,5 +118,27 @@ describe('weeklyTotals', () => {
 
   it('is empty for empty data', () => {
     expect(weeklyTotals([])).toEqual([])
+  })
+})
+
+describe('punchcardLevels', () => {
+  it('levels every hour cell by quantile, zero stays empty', () => {
+    const grid = Array.from({ length: 7 }, () => new Array<number>(24).fill(0))
+    grid[0][6] = 1
+    grid[1][18] = 2
+    grid[2][12] = 3
+    grid[3][7] = 4
+    grid[4][19] = 20
+    const levels = punchcardLevels(grid)
+    expect(levels).toHaveLength(7)
+    expect(levels.every((r) => r.length === 24)).toBe(true)
+    // quartis dos não-zero [1,2,3,4,20]: 2, 3, 4
+    expect([levels[0][6], levels[1][18], levels[2][12], levels[3][7], levels[4][19]]).toEqual([1, 1, 2, 3, 4])
+    expect(levels[6][0]).toBe(0)
+  })
+
+  it('is all zero for an empty grid', () => {
+    const levels = punchcardLevels(Array.from({ length: 7 }, () => new Array<number>(24).fill(0)))
+    expect(levels.flat().every((l) => l === 0)).toBe(true)
   })
 })
