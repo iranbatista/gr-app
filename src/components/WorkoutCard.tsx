@@ -3,6 +3,7 @@ import { useState } from 'react'
 import type { Workout } from '../api/types'
 import { formatCalories, formatDate, formatDistance, formatDuration, formatPoints } from '../lib/format'
 import { Avatar } from './Avatar'
+import { Badge } from './ui/Badge'
 
 function metrics(w: Workout): [LucideIcon, string][] {
   const out: [LucideIcon, string][] = []
@@ -43,12 +44,10 @@ export function WorkoutCard({ workout: w, showMember = true }: { workout: Workou
         {m.length > 0 && (
           <ul className="flex flex-wrap gap-1">
             {m.map(([Icon, v], i) => (
-              <li
-                key={i}
-                className="inline-flex items-center gap-1 rounded-full bg-[var(--wash)] px-2 py-0.5 text-[0.6875rem] font-medium text-[var(--ink-muted)] tabular-nums"
-              >
-                <Icon size={11} strokeWidth={1.75} className="text-[var(--brand-ink)]" />
-                {v}
+              <li key={i}>
+                <Badge size="xs" icon={Icon}>
+                  {v}
+                </Badge>
               </li>
             ))}
           </ul>

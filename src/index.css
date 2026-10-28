@@ -126,21 +126,6 @@
     border-color: var(--brand-from);
     box-shadow: 0 0 0 3px rgba(249, 133, 16, 0.18);
   }
-  /* Botão principal: o gradiente cheio com sombra laranja. */
-  .btn-primary {
-    @apply inline-flex h-10 items-center justify-center rounded-full px-6 text-sm font-semibold text-white transition-[filter,transform] hover:brightness-[1.04] active:translate-y-px;
-    background-image: linear-gradient(
-      100deg,
-      var(--brand-from),
-      var(--brand-mid) 45%,
-      var(--brand-to)
-    );
-    box-shadow: 0 6px 20px -8px rgba(249, 133, 16, 0.9);
-  }
-  /* Botão secundário: pill de contorno, acende em --tint no hover. */
-  .btn-secondary {
-    @apply inline-flex h-10 items-center justify-center rounded-full border border-[var(--hairline)] bg-[var(--card)] px-6 text-sm font-medium text-[var(--ink-muted)] transition-colors hover:bg-[var(--tint)] hover:text-[var(--brand-ink)] disabled:cursor-not-allowed disabled:opacity-45;
-  }
   /* Entradas de overlay: fade, painel central e bottom sheet. */
   @keyframes fade-in {
     from { opacity: 0; }

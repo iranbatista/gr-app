@@ -8,6 +8,7 @@ import { DayHeatmap } from '../components/DayHeatmap'
 import { EmptyState } from '../components/EmptyState'
 import { ErrorState } from '../components/ErrorState'
 import { StatTile } from '../components/StatTile'
+import { Badge } from '../components/ui/Badge'
 import { WeeklyChart } from '../components/WeeklyChart'
 import { WorkoutList } from '../components/WorkoutList'
 import { formatCalories, formatDistance, formatPoints, localDayKey } from '../lib/format'
@@ -117,10 +118,9 @@ function MemberView({ challengeId, memberId }: { challengeId: number; memberId: 
             {name}
           </h1>
           {entry?.rank != null && (
-            <p className="inline-flex items-center gap-1.5 rounded-full border border-[var(--brand-from)]/35 bg-[var(--tint)] px-3.5 py-1 text-[0.8125rem] font-semibold text-[var(--brand-ink)]">
-              <Trophy size={13} strokeWidth={1.75} />
+            <Badge tone="tint" size="md" icon={Trophy}>
               {entry.rank}º no ranking
-            </p>
+            </Badge>
           )}
         </div>
       </header>

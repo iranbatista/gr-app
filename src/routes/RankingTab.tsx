@@ -6,6 +6,8 @@ import { Avatar } from '../components/Avatar'
 import { EmptyState } from '../components/EmptyState'
 import { ErrorState } from '../components/ErrorState'
 import { Pager } from '../components/Pager'
+import { Badge } from '../components/ui/Badge'
+import { Tooltip } from '../components/ui/Tooltip'
 import { formatPoints } from '../lib/format'
 import { paginate } from '../lib/paginate'
 
@@ -63,13 +65,15 @@ export function RankingTab({ challengeId }: { challengeId: number }) {
                 )}
               </span>
               <Avatar url={r.account.profile_picture_url} name={r.account.full_name} ring={podium} />
-              <span className="min-w-0 flex-1 truncate font-medium text-[var(--ink)]">
-                {r.account.full_name ?? 'Sem nome'}
-              </span>
-              <span className="inline-flex shrink-0 items-center gap-1 rounded-full border border-[var(--brand-from)]/35 bg-[var(--tint)] px-3 py-0.5 text-[0.8125rem] font-semibold tabular-nums text-[var(--brand-ink)]">
-                <Star size={12} strokeWidth={1.75} />
+              {/* Nome cortado no celular: o tooltip mostra inteiro. */}
+              <Tooltip content={r.account.full_name ?? 'Sem nome'}>
+                <span className="min-w-0 flex-1 truncate font-medium text-[var(--ink)]">
+                  {r.account.full_name ?? 'Sem nome'}
+                </span>
+              </Tooltip>
+              <Badge tone="tint" icon={Star} className="text-[0.8125rem]">
                 {formatPoints(r.score ?? 0)}
-              </span>
+              </Badge>
             </>
           )
           return (

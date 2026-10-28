@@ -5,6 +5,7 @@ import { useChallenge } from '../api/queries'
 import { Cover } from '../components/Cover'
 import { ErrorState } from '../components/ErrorState'
 import { StatusBadge } from '../components/StatusBadge'
+import { segmentClass } from '../components/ui/SegmentedControl'
 import { formatPeriod } from '../lib/format'
 import { backLinkClass, icon, pageClass } from '../lib/ui'
 import { isActive } from '../lib/visual'
@@ -111,11 +112,7 @@ export function ChallengePage() {
                 return next
               })
             }
-            className={`inline-flex shrink-0 items-center gap-2 rounded-full border px-5 py-2 text-sm transition-colors ${
-              tab === t.id
-                ? 'border-[var(--brand-from)] bg-[var(--tint)] font-semibold text-[var(--brand-ink)]'
-                : 'border-[var(--hairline)] bg-[var(--card)] text-[var(--ink-muted)] hover:bg-[var(--wash)]'
-            }`}
+            className={`${segmentClass(tab === t.id)} px-5`}
           >
             <t.Icon {...icon} />
             {t.label}

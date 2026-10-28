@@ -1,5 +1,6 @@
 import { ArrowLeft, RotateCw, TriangleAlert } from 'lucide-react'
 import { icon } from '../lib/ui'
+import { Button, buttonClass } from './ui/Button'
 import { Link } from 'react-router-dom'
 import { ApiError } from '../api/client'
 
@@ -35,16 +36,15 @@ export function ErrorState({ error, onRetry, notFound = 'Não encontrado' }: Pro
         </p>
       </div>
       {status === 404 && (
-        <Link to="/" className="btn-secondary gap-2">
+        <Link to="/" className={buttonClass('secondary')}>
           <ArrowLeft {...icon} />
           Voltar aos desafios
         </Link>
       )}
       {retryable && onRetry && (
-        <button type="button" onClick={onRetry} className="btn-primary gap-2">
-          <RotateCw {...icon} />
+        <Button variant="primary" icon={RotateCw} onClick={onRetry}>
           Tentar de novo
-        </button>
+        </Button>
       )}
     </div>
   )

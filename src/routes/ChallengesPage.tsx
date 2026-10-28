@@ -6,6 +6,7 @@ import { Cover } from '../components/Cover'
 import { EmptyState } from '../components/EmptyState'
 import { ErrorState } from '../components/ErrorState'
 import { StatusBadge } from '../components/StatusBadge'
+import { SegmentedControl } from '../components/ui/SegmentedControl'
 import { formatPeriod } from '../lib/format'
 import { icon, pageClass } from '../lib/ui'
 import { isActive } from '../lib/visual'
@@ -63,47 +64,6 @@ const STATUS = [
 ] as const
 
 type StatusId = (typeof STATUS)[number]['id']
-
-interface StatusFilterProps {
-  value: StatusId
-  counts: Record<StatusId, number> | null
-  onChange: (value: StatusId) => void
-}
-
-/** Pills no estilo do seletor de mês: ativo em --tint, contagem em badge. */
-function StatusFilter({ value, counts, onChange }: StatusFilterProps) {
-  return (
-    <div role="group" aria-label="Status dos desafios" className="-mx-1 flex gap-2 overflow-x-auto px-1 pb-1">
-      {STATUS.map((st) => {
-        const active = st.id === value
-        return (
-          <button
-            key={st.id}
-            type="button"
-            aria-pressed={active}
-            onClick={() => onChange(st.id)}
-            className={`flex shrink-0 items-center gap-2 rounded-full border px-4 py-2 text-sm transition-colors ${
-              active
-                ? 'border-[var(--brand-from)] bg-[var(--tint)] font-semibold text-[var(--brand-ink)]'
-                : 'border-[var(--hairline)] bg-[var(--card)] text-[var(--ink-muted)] hover:bg-[var(--wash)]'
-            }`}
-          >
-            {st.label}
-            {counts && (
-              <span
-                className={`min-w-5 rounded-full px-1.5 text-center text-xs leading-5 tabular-nums ${
-                  active ? 'bg-[var(--brand-from)]/15 text-[var(--brand-ink)]' : 'bg-[var(--wash)] text-[var(--ink-muted)]'
-                }`}
-              >
-                {counts[st.id]}
-              </span>
-            )}
-          </button>
-        )
-      })}
-    </div>
-  )
-}
 
 export function ChallengesPage() {
   const q = useChallenges()
@@ -193,7 +153,14 @@ export function ChallengesPage() {
         </p>
       </header>
       <div className="flex flex-col gap-6">
-        {q.data && q.data.length > 0 && <StatusFilter value={status} counts={counts} onChange={changeStatus} />}
+        {q.data && q.data.length > 0 && (
+          <SegmentedControl
+            label="Status dos desafios"
+            value={status}
+            onChange={changeStatus}
+            options={STATUS.map((st) => ({ value: st.id, label: st.label, count: counts?.[st.id] }))}
+          />
+        )}
         {content}
       </div>
     </main>

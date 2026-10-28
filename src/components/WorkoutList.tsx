@@ -1,10 +1,10 @@
 import { ChevronDown, Dumbbell } from 'lucide-react'
-import { icon } from '../lib/ui'
 import { type WorkoutFilters, useWorkouts } from '../api/queries'
 import type { Workout } from '../api/types'
 import { dayLabel, localDayKey } from '../lib/format'
 import { EmptyState } from './EmptyState'
 import { ErrorState } from './ErrorState'
+import { Button } from './ui/Button'
 import { WorkoutCard } from './WorkoutCard'
 
 interface Props {
@@ -96,15 +96,9 @@ export function WorkoutList({ challengeId, filters, showMember = true }: Props) 
       ))}
       {q.hasNextPage && (
         <div className="flex justify-center">
-          <button
-            type="button"
-            onClick={() => q.fetchNextPage()}
-            disabled={q.isFetchingNextPage}
-            className="btn-secondary gap-2"
-          >
-            <ChevronDown {...icon} />
+          <Button icon={ChevronDown} onClick={() => q.fetchNextPage()} disabled={q.isFetchingNextPage}>
             {q.isFetchingNextPage ? 'Carregando…' : 'Carregar mais'}
-          </button>
+          </Button>
         </div>
       )}
     </div>
