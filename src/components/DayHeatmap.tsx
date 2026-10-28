@@ -51,8 +51,10 @@ export function DayHeatmap({ data, title = 'Check-ins por dia', aside }: Props) 
         .join(' · ')}
     >
       <div className="flex flex-1 flex-col justify-center gap-3">
-        {/* Rola dentro do card se houver semanas demais; a página não estoura. */}
-        <div className="overflow-x-auto pb-1">
+        {/* Rola dentro do card se houver semanas demais; a página não estoura.
+            O padding compensado dá espaço ao anel do dia atual, que fica fora da
+            célula e seria cortado pelo overflow. */}
+        <div className="-m-1 overflow-x-auto p-1 pb-2">
           <div className="mx-auto w-max [--cell:clamp(0.875rem,7vw,2.25rem)] sm:[--cell:2.25rem]">
             <div className="grid gap-[3px]" style={{ gridTemplateColumns: columns }}>
               {months.map((m) => (
