@@ -3,7 +3,7 @@ import userEvent from '@testing-library/user-event'
 import { http, HttpResponse } from 'msw'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import type { Insights, RankingEntry, Stats } from '../api/types'
-import { API, challenge, insights } from '../test/fixtures'
+import { API, bruno, challenge, insights } from '../test/fixtures'
 import { renderApp } from '../test/render'
 import { server } from '../test/server'
 
@@ -70,6 +70,8 @@ const data: Record<string, { stats: Stats; insights: Insights; rankings: Ranking
       challenge_id: 2,
       members_total: 10,
       totals: { workouts: 100, minutes: 6000, athletes_active: 8 },
+      // Madrugador muda de dono; os outros prêmios repetem.
+      awards: { ...insights.awards, early_bird: { account: bruno, value: 5 } },
       daily: [{ date: '2026-09-04', workouts: 4, athletes: 3, minutes: 200 }],
     },
     rankings: [...shared.map((s, i) => ({ rank: 12 - i, score: s.b, account: acc(s) })), { rank: 13, score: 5, account: saiu }],
@@ -197,6 +199,21 @@ describe('ComparePage', () => {
     )
     expect(screen.getByText('+112 no dia 25 · Outubro à frente')).toBeInTheDocument()
     expect(screen.getByRole('img', { name: /^Participação diária, média móvel de 7 dias:/ })).toBeInTheDocument()
+  })
+
+  it('marks repeat and new champions in the awards', async () => {
+    mockCompareApi()
+    renderApp('/comparar?a=1&b=2')
+    const table = await screen.findByRole('table', { name: 'Prêmios comparados' })
+    expect(screen.getByText('7 de 8 repetiram')).toBeInTheDocument()
+    const row = (title: string) => within(table).getByRole('rowheader', { name: title }).closest('[role="row"]') as HTMLElement
+    const early = row('Madrugador')
+    expect(within(early).getByText('Novo campeão')).toBeInTheDocument()
+    expect(within(early).getByText('Bruno Lima')).toBeInTheDocument()
+    const longest = row('Maior sequência')
+    expect(within(longest).getByText('Bicampeão')).toBeInTheDocument()
+    expect(within(longest).getByText('também em Setembro')).toBeInTheDocument()
+    expect(within(table).getAllByText('Bicampeão')).toHaveLength(7)
   })
 
   it('hides periods empty on both sides', async () => {

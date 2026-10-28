@@ -61,7 +61,8 @@ export function WhenCompareSkeleton() {
 
 export function AwardsCompareSkeleton() {
   return (
-    <SkeletonGroup label="Carregando destaques" className="surface flex flex-col px-5 py-2">
+    <SkeletonGroup label="Carregando destaques" className="surface flex flex-col gap-2 p-5">
+      <CardHead />
       {Array.from({ length: 6 }, (_, i) => (
         <div key={i} className="grid grid-cols-1 gap-2.5 border-b border-[var(--hairline)] py-3.5 last:border-b-0 sm:grid-cols-[11rem_1fr_1fr] sm:items-center sm:gap-4">
           <div className="flex items-center gap-2.5">
