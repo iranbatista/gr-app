@@ -9,6 +9,16 @@ export type Workout = Schemas['Workout']
 export type WorkoutPage = Schemas['WorkoutPage']
 export type Reaction = Schemas['Reaction']
 export type Comment = Schemas['Comment']
+export type Insights = Schemas['Insights']
+export type InsightsTotals = Schemas['InsightsTotals']
+export type DailyPoint = Schemas['DailyPoint']
+export type Periods = Schemas['Periods']
+export type WeekdayDuration = Schemas['WeekdayDuration']
+export type Streak = Schemas['Streak']
+export type Award = Schemas['Award']
+export type Awards = Schemas['Awards']
+export type TopWorkout = Schemas['TopWorkout']
+export type EmojiCount = Schemas['EmojiCount']
 
 // `media` vem sem schema na API (unknown): formato observado nos check-ins reais.
 export interface WorkoutMedium {

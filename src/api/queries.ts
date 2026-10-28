@@ -1,6 +1,6 @@
 import { useInfiniteQuery, useQuery } from '@tanstack/react-query'
 import { apiGet } from './client'
-import type { Challenge, Comment, RankingEntry, Stats, SyncMeta, Workout, WorkoutPage } from './types'
+import type { Challenge, Comment, Insights, RankingEntry, Stats, SyncMeta, Workout, WorkoutPage } from './types'
 
 export const PAGE_SIZE = 30
 const MAX_LIMIT = 1000
@@ -59,6 +59,14 @@ export function useStats(id: number) {
   return useQuery({
     queryKey: ['stats', id],
     queryFn: () => apiGet<Stats>(`/challenges/${id}/stats`),
+  })
+}
+
+// Agregados do dashboard. Antes do deploy da API responde 404 genérico (tratado na aba).
+export function useInsights(id: number) {
+  return useQuery({
+    queryKey: ['insights', id],
+    queryFn: () => apiGet<Insights>(`/challenges/${id}/insights`),
   })
 }
 

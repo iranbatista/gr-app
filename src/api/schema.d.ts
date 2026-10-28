@@ -188,6 +188,29 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/challenges/{cid}/insights": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Challenge Insights
+         * @description Agregados ricos p/ o dashboard: serie diaria, punchcard, periodos, duracao por dia
+         *     da semana, sequencias, premios, top check-ins e emojis.
+         *
+         *     Tudo calculado no fuso GYMRATS_TZ (default America/Sao_Paulo).
+         */
+        get: operations["challenge_insights_challenges__cid__insights_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/meta/sync": {
         parameters: {
             query?: never;
@@ -220,6 +243,20 @@ export interface components {
             full_name?: string | null;
             /** Profile Picture Url */
             profile_picture_url?: string | null;
+        };
+        /** Award */
+        Award: {
+            account: components["schemas"]["Account"];
+            /** Value */
+            value: number;
+        };
+        /** Awards */
+        Awards: {
+            early_bird?: components["schemas"]["Award"] | null;
+            night_owl?: components["schemas"]["Award"] | null;
+            most_reactions?: components["schemas"]["Award"] | null;
+            most_comments?: components["schemas"]["Award"] | null;
+            most_reactions_given?: components["schemas"]["Award"] | null;
         };
         /** Challenge */
         Challenge: {
@@ -267,10 +304,61 @@ export interface components {
             /** Media Details */
             media_details?: unknown | null;
         };
+        /** DailyPoint */
+        DailyPoint: {
+            /** Date */
+            date: string;
+            /** Workouts */
+            workouts: number;
+            /** Athletes */
+            athletes: number;
+            /** Minutes */
+            minutes: number;
+        };
+        /** EmojiCount */
+        EmojiCount: {
+            /** Emoji */
+            emoji: string;
+            /** Count */
+            count: number;
+        };
         /** HTTPValidationError */
         HTTPValidationError: {
             /** Detail */
             detail?: components["schemas"]["ValidationError"][];
+        };
+        /** Insights */
+        Insights: {
+            /** Challenge Id */
+            challenge_id: number;
+            /** Tz */
+            tz: string;
+            /** Members Total */
+            members_total: number;
+            totals: components["schemas"]["InsightsTotals"];
+            /** Daily */
+            daily: components["schemas"]["DailyPoint"][];
+            /** Punchcard */
+            punchcard: number[][];
+            periods: components["schemas"]["Periods"];
+            /** Duration By Weekday */
+            duration_by_weekday: components["schemas"]["WeekdayDuration"][];
+            /** Streaks */
+            streaks: components["schemas"]["Streak"][];
+            awards: components["schemas"]["Awards"];
+            /** Top Workouts */
+            top_workouts: components["schemas"]["TopWorkout"][];
+            /** Emojis */
+            emojis: components["schemas"]["EmojiCount"][];
+        };
+        /** InsightsTotals */
+        InsightsTotals: {
+            /** Workouts */
+            workouts: number;
+            /** Minutes */
+            minutes: number;
+            /** Athletes Active */
+            athletes_active: number;
         };
         /** Member */
         Member: {
@@ -287,6 +375,29 @@ export interface components {
             /** Twitter */
             twitter?: string | null;
         };
+        /** Periods */
+        Periods: {
+            /**
+             * Madrugada
+             * @default 0
+             */
+            madrugada: number;
+            /**
+             * Manha
+             * @default 0
+             */
+            manha: number;
+            /**
+             * Tarde
+             * @default 0
+             */
+            tarde: number;
+            /**
+             * Noite
+             * @default 0
+             */
+            noite: number;
+        };
         /** RankingEntry */
         RankingEntry: {
             /** Rank */
@@ -301,6 +412,30 @@ export interface components {
             reaction?: string | null;
             account: components["schemas"]["Account"];
         };
+        /** Streak */
+        Streak: {
+            account: components["schemas"]["Account"];
+            /** Longest */
+            longest: number;
+            /** Current */
+            current: number;
+        };
+        /** TopWorkout */
+        TopWorkout: {
+            /** Id */
+            id: number;
+            /** Title */
+            title?: string | null;
+            /** Photo Url */
+            photo_url?: string | null;
+            account: components["schemas"]["Account"];
+            /** Occurred At */
+            occurred_at?: string | null;
+            /** Reactions Count */
+            reactions_count: number;
+            /** Comment Count */
+            comment_count: number;
+        };
         /** ValidationError */
         ValidationError: {
             /** Location */
@@ -313,6 +448,15 @@ export interface components {
             input?: unknown;
             /** Context */
             ctx?: Record<string, never>;
+        };
+        /** WeekdayDuration */
+        WeekdayDuration: {
+            /** Weekday */
+            weekday: number;
+            /** Workouts */
+            workouts: number;
+            /** Avg Minutes */
+            avg_minutes?: number | null;
         };
         /** Workout */
         Workout: {
@@ -671,6 +815,39 @@ export interface operations {
                 };
                 content: {
                     "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    challenge_insights_challenges__cid__insights_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                "x-api-key"?: string | null;
+            };
+            path: {
+                cid: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Insights"];
                 };
             };
             /** @description Validation Error */
