@@ -4,23 +4,14 @@ import { DayHeatmap } from '../components/DayHeatmap'
 import { EmptyState } from '../components/EmptyState'
 import { ErrorState } from '../components/ErrorState'
 import { MemberChart } from '../components/MemberChart'
+import { StatsSkeleton } from '../components/skeletons'
 import { StatTile } from '../components/StatTile'
 import { WeeklyChart } from '../components/WeeklyChart'
 
 export function StatsTab({ challengeId }: { challengeId: number }) {
   const q = useStats(challengeId)
 
-  if (q.isPending) {
-    return (
-      <div aria-hidden className="flex animate-pulse flex-col gap-6">
-        <div className="grid grid-cols-2 gap-4">
-          <div className="surface h-[5.5rem]" />
-          <div className="surface h-[5.5rem]" />
-        </div>
-        <div className="surface h-72" />
-      </div>
-    )
-  }
+  if (q.isPending) return <StatsSkeleton />
   if (q.isError) return <ErrorState error={q.error} onRetry={() => q.refetch()} />
   const s = q.data
   if (s.total_workouts === 0) return <EmptyState eyebrow="Gráficos" Icon={Dumbbell}>Nenhum check-in ainda</EmptyState>

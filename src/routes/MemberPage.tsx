@@ -7,7 +7,9 @@ import { Avatar } from '../components/Avatar'
 import { DayHeatmap } from '../components/DayHeatmap'
 import { EmptyState } from '../components/EmptyState'
 import { ErrorState } from '../components/ErrorState'
+import { ChartsRowSkeleton, MemberSkeleton } from '../components/skeletons'
 import { StatTile } from '../components/StatTile'
+import { SkeletonGroup } from '../components/ui/Skeleton'
 import { Badge } from '../components/ui/Badge'
 import { WeeklyChart } from '../components/WeeklyChart'
 import { WorkoutList } from '../components/WorkoutList'
@@ -15,20 +17,6 @@ import { formatCalories, formatDistance, formatPoints, localDayKey } from '../li
 import { backLinkClass, icon, pageClass } from '../lib/ui'
 
 const sectionTitle = 'font-heading text-lg font-medium tracking-tight text-[var(--ink)]'
-
-/** Hero vazio no formato do cabeçalho do membro. */
-function HeroSkeleton() {
-  return (
-    <div aria-hidden className="surface flex animate-pulse items-center gap-5 p-6">
-      <div className="h-[6.25rem] w-[6.25rem] shrink-0 rounded-full bg-[var(--wash)]" />
-      <div className="flex flex-1 flex-col gap-3">
-        <div className="h-3 w-16 rounded-full bg-[var(--wash)]" />
-        <div className="h-7 w-48 max-w-full rounded-full bg-[var(--wash)]" />
-        <div className="h-6 w-28 rounded-full bg-[var(--wash)]" />
-      </div>
-    </div>
-  )
-}
 
 function countByDay(items: Workout[]): DayCount[] {
   const counts = new Map<string, number>()
@@ -72,8 +60,7 @@ function MemberView({ challengeId, memberId }: { challengeId: number; memberId: 
     return (
       <main className={`${pageClass} flex flex-col gap-8`}>
         {back}
-        <HeroSkeleton />
-        <div aria-hidden className="surface h-72 animate-pulse" />
+        <MemberSkeleton />
       </main>
     )
   }
@@ -138,19 +125,14 @@ function MemberView({ challengeId, memberId }: { challengeId: number; memberId: 
       {/* Dia e semana lado a lado no desktop, empilhados no celular. */}
       {all.isError ? (
         <ErrorState error={all.error} onRetry={() => all.refetch()} />
+      ) : all.isPending ? (
+        <SkeletonGroup label="Carregando gráficos">
+          <ChartsRowSkeleton />
+        </SkeletonGroup>
       ) : (
         <div className="grid gap-5 lg:grid-cols-2">
-          {all.isPending ? (
-            <>
-              <div aria-hidden className="surface h-72 animate-pulse" />
-              <div aria-hidden className="surface h-72 animate-pulse" />
-            </>
-          ) : (
-            <>
-              <DayHeatmap data={days!} />
-              <WeeklyChart data={days!} />
-            </>
-          )}
+          <DayHeatmap data={days!} />
+          <WeeklyChart data={days!} />
         </div>
       )}
 

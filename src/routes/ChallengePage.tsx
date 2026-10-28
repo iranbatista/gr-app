@@ -4,6 +4,7 @@ import { ApiError } from '../api/client'
 import { useChallenge } from '../api/queries'
 import { Cover } from '../components/Cover'
 import { ErrorState } from '../components/ErrorState'
+import { ChallengeHeroSkeleton } from '../components/skeletons'
 import { StatusBadge } from '../components/StatusBadge'
 import { segmentClass } from '../components/ui/SegmentedControl'
 import { formatPeriod } from '../lib/format'
@@ -42,16 +43,8 @@ export function ChallengePage() {
 
   if (q.isPending) {
     return (
-      <main className={`${pageClass} flex flex-col gap-8`}>
-        <div aria-hidden className="h-8 w-28 animate-pulse rounded-full bg-[var(--wash)]" />
-        <div aria-hidden className="surface flex animate-pulse flex-col gap-5 p-3">
-          <div className="h-48 w-full rounded-[1.25rem] bg-[var(--wash)] sm:h-56" />
-          <div className="flex flex-col gap-3 px-3 pb-3">
-            <div className="h-3 w-20 rounded-full bg-[var(--wash)]" />
-            <div className="h-7 w-64 max-w-full rounded-full bg-[var(--wash)]" />
-            <div className="h-3 w-48 rounded-full bg-[var(--wash)]" />
-          </div>
-        </div>
+      <main className={pageClass}>
+        <ChallengeHeroSkeleton />
       </main>
     )
   }

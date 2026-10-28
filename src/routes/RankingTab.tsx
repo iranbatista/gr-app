@@ -6,6 +6,7 @@ import { Avatar } from '../components/Avatar'
 import { EmptyState } from '../components/EmptyState'
 import { ErrorState } from '../components/ErrorState'
 import { Pager } from '../components/Pager'
+import { RankingSkeleton } from '../components/skeletons'
 import { Badge } from '../components/ui/Badge'
 import { Tooltip } from '../components/ui/Tooltip'
 import { formatPoints } from '../lib/format'
@@ -13,32 +14,12 @@ import { paginate } from '../lib/paginate'
 
 const PAGE_SIZE = 10
 
-/** Linha vazia no formato da linha do ranking. */
-function RowSkeleton() {
-  return (
-    <li aria-hidden className="flex items-center gap-4 px-5 py-4">
-      <div className="h-5 w-8 rounded-full bg-[var(--wash)]" />
-      <div className="h-10 w-10 rounded-full bg-[var(--wash)]" />
-      <div className="h-4 flex-1 rounded-full bg-[var(--wash)]" />
-      <div className="h-6 w-12 rounded-full bg-[var(--wash)]" />
-    </li>
-  )
-}
-
 export function RankingTab({ challengeId }: { challengeId: number }) {
   const q = useRankings(challengeId)
   // Página volta para 1 ao trocar de desafio: ChallengePage remonta a aba com key.
   const [page, setPage] = useState(1)
 
-  if (q.isPending) {
-    return (
-      <ol className="surface animate-pulse divide-y divide-[var(--hairline)] overflow-hidden">
-        {Array.from({ length: 5 }, (_, i) => (
-          <RowSkeleton key={i} />
-        ))}
-      </ol>
-    )
-  }
+  if (q.isPending) return <RankingSkeleton />
   if (q.isError) return <ErrorState error={q.error} onRetry={() => q.refetch()} />
   if (q.data.length === 0) return <EmptyState eyebrow="Ranking" Icon={Trophy}>Ranking vazio</EmptyState>
 

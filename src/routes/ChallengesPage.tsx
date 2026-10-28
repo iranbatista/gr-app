@@ -5,6 +5,7 @@ import type { Challenge } from '../api/types'
 import { Cover } from '../components/Cover'
 import { EmptyState } from '../components/EmptyState'
 import { ErrorState } from '../components/ErrorState'
+import { ChallengesSkeleton, challengeGrid } from '../components/skeletons'
 import { StatusBadge } from '../components/StatusBadge'
 import { SegmentedControl } from '../components/ui/SegmentedControl'
 import { formatPeriod } from '../lib/format'
@@ -40,23 +41,7 @@ function ChallengeCard({ c }: { c: Challenge }) {
   )
 }
 
-/** Cartão vazio no formato do ChallengeCard. */
-function ChallengeSkeleton() {
-  return (
-    <div aria-hidden className="surface flex flex-col gap-4 p-3">
-      <div className="h-40 w-full rounded-[1.25rem] bg-[var(--wash)]" />
-      <div className="flex flex-col gap-2.5 px-2 pb-2">
-        <div className="flex justify-between gap-3">
-          <div className="h-4 w-36 rounded-full bg-[var(--wash)]" />
-          <div className="h-5 w-14 rounded-full bg-[var(--wash)]" />
-        </div>
-        <div className="h-3 w-48 rounded-full bg-[var(--wash)]" />
-      </div>
-    </div>
-  )
-}
-
-const grid = 'grid gap-5 sm:grid-cols-2 lg:grid-cols-3'
+const grid = challengeGrid
 
 const STATUS = [
   { id: 'ativos', label: 'Ativos', empty: 'Nenhum desafio ativo no momento' },
@@ -88,13 +73,7 @@ export function ChallengesPage() {
 
   let content
   if (q.isPending) {
-    content = (
-      <div className={`${grid} animate-pulse`}>
-        {Array.from({ length: 3 }, (_, i) => (
-          <ChallengeSkeleton key={i} />
-        ))}
-      </div>
-    )
+    content = <ChallengesSkeleton />
   } else if (q.isError) {
     content = <ErrorState error={q.error} onRetry={() => q.refetch()} />
   } else if (all.length === 0) {

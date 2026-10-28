@@ -6,6 +6,8 @@ import { EmptyState } from './EmptyState'
 import { ErrorState } from './ErrorState'
 import { Button } from './ui/Button'
 import { WorkoutCard } from './WorkoutCard'
+import { WorkoutCardSkeleton, WorkoutsSkeleton, workoutGrid } from './skeletons'
+import { SkeletonGroup } from './ui/Skeleton'
 
 interface Props {
   challengeId: number
@@ -32,38 +34,10 @@ function groupByDay(items: Workout[]): [string, Workout[]][] {
   return out
 }
 
-/** Cartão vazio no formato do check-in: foto, membro, título e pills. */
-function WorkoutSkeleton() {
-  return (
-    <div aria-hidden className="surface flex flex-col gap-3 rounded-[1.375rem] p-2.5">
-      <div className="aspect-[4/3] w-full rounded-[1rem] bg-[var(--wash)]" />
-      <div className="flex flex-col gap-2 px-1.5 pb-1.5">
-        <div className="flex items-center gap-2">
-          <div className="h-6 w-6 rounded-full bg-[var(--wash)]" />
-          <div className="h-3 w-24 rounded-full bg-[var(--wash)]" />
-        </div>
-        <div className="h-3.5 w-36 rounded-full bg-[var(--wash)]" />
-        <div className="flex gap-1">
-          <div className="h-4 w-14 rounded-full bg-[var(--wash)]" />
-          <div className="h-4 w-12 rounded-full bg-[var(--wash)]" />
-        </div>
-      </div>
-    </div>
-  )
-}
-
 export function WorkoutList({ challengeId, filters, showMember = true }: Props) {
   const q = useWorkouts(challengeId, filters)
 
-  if (q.isPending) {
-    return (
-      <div className="grid animate-pulse grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {Array.from({ length: 6 }, (_, i) => (
-          <WorkoutSkeleton key={i} />
-        ))}
-      </div>
-    )
-  }
+  if (q.isPending) return <WorkoutsSkeleton showMember={showMember} />
   if (q.isError) return <ErrorState error={q.error} onRetry={() => q.refetch()} />
 
   // páginas por offset podem se sobrepor quando há check-ins novos entre as requisições
@@ -87,13 +61,21 @@ export function WorkoutList({ challengeId, filters, showMember = true }: Props) 
             <h3 className="eyebrow shrink-0">{key === NO_DATE ? 'Sem data' : dayLabel(key)}</h3>
             <span aria-hidden className="h-px flex-1 bg-[var(--hairline)]" />
           </div>
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <div className={workoutGrid}>
             {group.map((w) => (
               <WorkoutCard key={w.id} workout={w} showMember={showMember} />
             ))}
           </div>
         </section>
       ))}
+      {/* Próxima página chegando: cartões vazios no fim do grid em vez de só o texto. */}
+      {q.isFetchingNextPage && (
+        <SkeletonGroup label="Carregando mais check-ins" className={workoutGrid}>
+          {Array.from({ length: 3 }, (_, i) => (
+            <WorkoutCardSkeleton key={i} showMember={showMember} />
+          ))}
+        </SkeletonGroup>
+      )}
       {q.hasNextPage && (
         <div className="flex justify-center">
           <Button icon={ChevronDown} onClick={() => q.fetchNextPage()} disabled={q.isFetchingNextPage}>
