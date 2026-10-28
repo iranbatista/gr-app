@@ -38,6 +38,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/img": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Img
+         * @description Miniatura WebP de uma imagem do CDN do GymRats, cacheada em disco (publico: <img> nao manda header).
+         */
+        get: operations["img_img_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/challenges": {
         parameters: {
             query?: never;
@@ -178,6 +198,7 @@ export interface paths {
          * @description Agregados prontos para dashboard: total, check-ins por dia e por membro.
          *
          *     Dias sao contados no fuso GYMRATS_TZ (default America/Sao_Paulo).
+         *     `until` (YYYY-MM-DD): so check-ins com dia local <= until.
          */
         get: operations["challenge_stats_challenges__cid__stats_get"];
         put?: never;
@@ -201,6 +222,7 @@ export interface paths {
          *     da semana, sequencias, premios, top check-ins e emojis.
          *
          *     Tudo calculado no fuso GYMRATS_TZ (default America/Sao_Paulo).
+         *     `until` (YYYY-MM-DD): so check-ins com dia local <= until; "hoje" das sequencias vira until.
          */
         get: operations["challenge_insights_challenges__cid__insights_get"];
         put?: never;
@@ -364,6 +386,8 @@ export interface components {
             top_workouts: components["schemas"]["TopWorkout"][];
             /** Emojis */
             emojis: components["schemas"]["EmojiCount"][];
+            /** Until */
+            until?: string | null;
         };
         /** InsightsTotals */
         InsightsTotals: {
@@ -567,6 +591,49 @@ export interface operations {
                 };
                 content: {
                     "application/json": unknown;
+                };
+            };
+        };
+    };
+    img_img_get: {
+        parameters: {
+            query: {
+                /** @description URL https://cdn.gymrats.app/... */
+                u: string;
+                /** @description largura, uma de (64, 128, 256, 512, 1024) */
+                w: number;
+            };
+            header?: {
+                "if-none-match"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "image/webp": unknown;
+                };
+            };
+            /** @description nao modificado */
+            304: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };
@@ -811,7 +878,9 @@ export interface operations {
     };
     challenge_stats_challenges__cid__stats_get: {
         parameters: {
-            query?: never;
+            query?: {
+                until?: string | null;
+            };
             header?: {
                 "x-api-key"?: string | null;
             };
@@ -844,7 +913,9 @@ export interface operations {
     };
     challenge_insights_challenges__cid__insights_get: {
         parameters: {
-            query?: never;
+            query?: {
+                until?: string | null;
+            };
             header?: {
                 "x-api-key"?: string | null;
             };

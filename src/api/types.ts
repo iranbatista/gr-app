@@ -52,6 +52,8 @@ export interface MemberStats {
 
 export interface Stats {
   challenge_id: number
+  /** Corte ecoado pela API (YYYY-MM-DD ou null); ausente na API antiga. */
+  until?: string | null
   total_workouts: number
   members: number
   by_day: DayCount[]
