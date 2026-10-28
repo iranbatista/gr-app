@@ -1,6 +1,10 @@
 import { useInfiniteQuery, useQuery } from '@tanstack/react-query'
-import { apiGet } from './client'
+import { ApiError, apiGet } from './client'
 import type { Challenge, Comment, Insights, RankingEntry, Stats, SyncMeta, Workout, WorkoutPage } from './types'
+
+// Grupos que a conta sincroniza mas que não fazem parte do app ("os piorais",
+// "Ratos 2025"): somem da lista e um link direto vira "não encontrado".
+const HIDDEN_CHALLENGES = new Set([1725433, 681232])
 
 export const PAGE_SIZE = 30
 const MAX_LIMIT = 1000
@@ -36,14 +40,18 @@ export function nextOffset(page: WorkoutPage): number | undefined {
 export function useChallenges() {
   return useQuery({
     queryKey: ['challenges'],
-    queryFn: () => apiGet<Challenge[]>('/challenges'),
+    queryFn: async () =>
+      (await apiGet<Challenge[]>('/challenges')).filter((c) => !HIDDEN_CHALLENGES.has(c.id)),
   })
 }
 
 export function useChallenge(id: number, enabled = true) {
   return useQuery({
     queryKey: ['challenge', id],
-    queryFn: () => apiGet<Challenge>(`/challenges/${id}`),
+    queryFn: () => {
+      if (HIDDEN_CHALLENGES.has(id)) throw new ApiError(404, 'desafio oculto')
+      return apiGet<Challenge>(`/challenges/${id}`)
+    },
     enabled,
   })
 }

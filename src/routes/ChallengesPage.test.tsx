@@ -6,6 +6,28 @@ import { API, challenge, oldChallenge } from '../test/fixtures'
 import { renderApp } from '../test/render'
 import { server } from '../test/server'
 
+describe('hidden challenges', () => {
+  it('leaves hidden challenges out of the list', async () => {
+    server.use(
+      http.get(`${API}/challenges`, () =>
+        HttpResponse.json([challenge, { ...challenge, id: 1725433, name: 'os piorais ' }]),
+      ),
+    )
+    renderApp('/')
+    expect(await screen.findByText('Desafio Outubro')).toBeInTheDocument()
+    expect(screen.queryByText(/os piorais/)).not.toBeInTheDocument()
+  })
+
+  it('treats a hidden challenge link as not found', async () => {
+    server.use(
+      http.get(`${API}/challenges/:id`, () => HttpResponse.json({ ...challenge, id: 681232, name: 'Ratos 2025' })),
+    )
+    renderApp('/c/681232')
+    expect(await screen.findByText('Desafio não encontrado')).toBeInTheDocument()
+    expect(screen.queryByText('Ratos 2025')).not.toBeInTheDocument()
+  })
+})
+
 describe('ChallengesPage', () => {
   it('lists challenges with status, period and member count', async () => {
     renderApp('/')
